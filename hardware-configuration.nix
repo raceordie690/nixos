@@ -9,9 +9,12 @@
     ];
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "thunderbolt" "usbhid" "usb_storage" "sd_mod" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModulePackages = [ ];
+  #boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "amdgpu" "kvm-amd" ];
+  #boot.extraModulePackages = [ ];
+  boot.kernelParams = [
+    "video=DP-4:3440x1440@60"
+  ];
 
   fileSystems."/" =
     { device = "rpool/root";
