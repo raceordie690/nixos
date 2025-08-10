@@ -98,11 +98,14 @@ in
     };
   };
   hardware.graphics = {
-      enable = true;
-      extraPackages = with unstable; [
-      ];
+    enable = true;
+    #driSupport = true;
+    extraPackages = with unstable; [
+      mesa
+    ];
+    #driSupport32Bit = true;
   };
-  
+
   services = {
     libinput.enable = true;
     libinput.mouse.accelProfile = "adaptive";
@@ -110,27 +113,20 @@ in
     displayManager.sddm = {
       enable = true;
       theme = "maya";
-    };
-    fwupd.enable = true;
-    gvfs.enable = true;
-    dbus.enable = true;
-    envfs.enable = true;
-    picom = {
-      enable = true;
-      backend = "glx";
-      settings = {
-        shadow = true;
-        inactive_opacity = 0.8;
-      };
+      #enableHidpi = true;
     };
   };
+  #services.picom.enable = true;
   services.xserver = {
-    dpi = 144;
+    dpi = 164;
+    #dpi = 110;
     upscaleDefaultCursor = true;
     desktopManager.plasma5.enable = false;
     desktopManager.xfce.enable = false;
-    videoDrivers = [ "modesetting" ];
+    #videoDrivers = [ "modesetting" ];
+    videoDrivers = [ "amdgpu" ];
     xkb.layout = "us";
+    #xkb.variant = "";
     enable = true;
 
     displayManager.setupCommands = ''
@@ -141,13 +137,53 @@ in
     '';
          
     windowManager.qtile = {
+
       enable = true;
+
+      #backend = "x11";
+      #backend = "wayland";
     };
+    #displayManager.defaultSession = "none+qtile";
+    #xrandrHeads = [ 
+    #  {
+    #    output = "DP-4";
+    #    monitorConfig = ''
+    #      DisplaySize 2560 2160
+    #      Option "Enable" "True"
+    #    '';
+    #  }
+    #  {
+    #    output = "DP-5";
+    #    monitorConfig = ''
+    #      DisplaySize 2560 2160
+    #      Option "RightOf" "DP-4"
+    #      Option "Enable" "True"
+    #    '';
+    #  }
+    #];
   };
   services.logind.extraConfig = ''
     # sleep when power button is short-pressed
     HandlePowerKey = "sleep";
     '';
+
+  
+
+  # Configure keymap in X11
+  #services.xserver.layout = "us";
+  #services.xserver.xkbOptions = "eurosign:e,caps:escape";
+
+  programs.fish.enable = true;
+
+  #programs.hyprland = {
+  #   enable = true;
+  #};
+
+  #programs.hyprland.xwayland = {
+  #   hidpi = true;
+  #   enable = true;
+  # };  
+  # environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   # Enable CUPS to print documents.
   services.printing = {
@@ -158,31 +194,13 @@ in
   };
   
   services.blueman.enable = true;
-  #pkgs.gnome-keyring.enable = true;
+  services.gnome.gnome-keyring.enable = true;
 
   hardware = {
     bluetooth.enable = true;
     bluetooth.powerOnBoot = true;
   };
-
-   # Grant access to Via-compatible keyboards for users
-  services.udev.extraRules = ''
-    # Generic rule for QMK/Via keyboards using the raw HID interface
-    #KERNEL=="hidraw*", ATTRS{usage_page}=="ff60", ATTRS{usage}=="0061", TAG+="uaccess"
-
-    # Fallback/Alternative rule (sometimes needed, less specific)
-    # KERNEL=="hidraw*", ATTRS{product}=="*VIA*", TAG+="uaccess"
-
-    # If the above don't work, find Vendor/Product ID with 'lsusb' (e.g., 1234:abcd)
-    KERNEL=="hidraw*", ATTRS{idVendor}=="fffe", ATTRS{idProduct}=="0009", TAG+="uaccess"
-  '';
-
-  # Ensure your user is part of the 'wheel' group (usually default)
-  # users.users.<your_username>.extraGroups = [ "wheel" # ... other groups ... ];
-
-  # Ensure the Via package is installed (you mentioned it is)
-  # environment.systemPackages = with pkgs; [ via ]; # Replace 'via' if package name differs
-
+  
   # Enable sound.
   # sound.enable = true;
   # hardware.pulseaudio.enable = true;
@@ -196,41 +214,13 @@ in
     jack.enable = true;
   };
 
-  services.pipewire.wireplumber.extraConfig.bluetoothEnhancements = {
-    "monitor.bluez.properties" = {
-        "bluez5.enable-sbc-xq" = true;
-        "bluez5.enable-msbc" = true;
-        "bluez5.enable-hw-volume" = true;
-        "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
-    };
-  };
-  services.pipewire.extraConfig.pipewire-pulse."92-low-latency" = {
-    context.modules = [
-      {
-        name = "libpipewire-module-protocol-pulse";
-        args = {
-          pulse.min.req = "32/48000";
-          pulse.default.req = "32/48000";
-          pulse.max.req = "32/48000";
-          pulse.min.quantum = "32/48000";
-          pulse.max.quantum = "32/48000";
-        };
-      }
-    ];
-    stream.properties = {
-      node.latency = "32/48000";
-      resample.quality = 1;
-    };
-  };
-
-
   
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.${user} = {
-    #shell = pkgs.fish;
+    shell = pkgs.fish;
     isNormalUser = true;
     initialPassword = "pwd";
     extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" ]; # Enable ‘sudo’ for the user.
@@ -271,42 +261,17 @@ in
     '';
   };
 
-  # Environment variables
-  environment.variables = {
-    # For Qt applications
-    # If services.xserver.dpi is set, QT_AUTO_SCREEN_SCALE_FACTOR = "1" allows Qt to use it.
-    #QT_AUTO_SCREEN_SCALE_FACTOR = "1";
-    # If the above makes Qt apps too big or too small, override manually:
-    QT_AUTO_SCREEN_SCALE_FACTOR = "0";
-    QT_SCALE_FACTOR = "1.5"; # Explicit 150% (Note: QT_SCALE_FACTOR often prefers integers)
-                               # QT_FONT_DPI = "144"; # Alternative for Qt if needed
-
-    QT_QPA_PLATFORMTHEME = "qt5ct"; # Keep if you use qt5ct for theming
-    QT_QPA_PLATFORM = "xcb";     # Standard for X11
-
-    # For GTK applications
-    GDK_SCALE = "1";          # Primary scale factor for GTK (set to 1 to use XFT_DPI)
-    GDK_DPI_SCALE = "1.5";  # Explicitly set if GDK_SCALE="1" and XFT_DPI isn't picked up as desired.
-                              # Test without this first. GTK should respect XFT_DPI when GDK_SCALE is "1".
-
-    # For Java applications
-    _JAVA_OPTIONS = "-Dsun.java2d.uiScale=1.5"; # 150% scaling
-
-    # For programs that might use Xft font rendering directly
-    XFT_DPI = (toString 144); # (96 DPI base * 1.5 = 144)
-                               # This should align with services.xserver.dpi.
+# Environment variables
+  environment = {
+    variables = {
+      QT_AUTO_SCREEN_SCALE_FACTOR = "1.75";
+      QT_QPA_PLATFORMTHEME = "qt5ct";
+      QT_QPA_PLATFORM = "xcb"; /* obs";*/
+      GDK_SCALE = "1";
+      GDK_DPI_SCALE = "1";
+      _JAVA_OPTIONS= "-Dsun.java2d.uiScale=1";
+    };
   };
-
-#  environment = {
-#    variables = {
-#      QT_AUTO_SCREEN_SCALE_FACTOR = "1.5";
-#      QT_QPA_PLATFORMTHEME = "qt5ct";
-#      QT_QPA_PLATFORM = "xcb"; /* obs";*/
-#      GDK_SCALE = "1";
-#      GDK_DPI_SCALE = "2";
-#      _JAVA_OPTIONS= "-Dsun.java2d.uiScale=2";
-#    };
-#  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -318,13 +283,10 @@ in
 
   # List services that you want to enable:
   environment.systemPackages = with pkgs; [
-    gnome-keyring
-    sops # the tool for editing and encrypting secrets used by home-manager
-    age # an alternative encryption tool used by sops
-    via
     #xorg.xf86videoamdgpu    
     swtpm
     xsettingsd
+    picom
     service-wrapper
     htop
     git
@@ -333,9 +295,11 @@ in
     google-chrome
     blueman
     dracula-theme
+  #  eww-wayland
     fontpreview
     gcolor3
     glibc
+    gnome.gnome-keyring
     gnumake
     gparted
     gtk3
@@ -350,35 +314,35 @@ in
     pipewire
     pkg-config
     polkit_gnome
+  #  qt5.qtwayland
     qt6.qmake
+  #  qt6.qtwayland
     ranger
     ripgrep
+  #  rofi-wayland
     scrot
     tldr
     trash-cli
     unzip
+  #  waybar
     zsh
     zsh-vi-mode
     wireplumber
     wl-color-picker
+  #  wofi
+  #  wlroots
+  #  xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
     xdg-utils
+  #  xwayland
     zoxide
-    (python312.withPackages (ps: with ps; [
-      qtile
-      crcmod
-    ]))
-    #python312
-    #python312Packages.qtile
-    #python312Packages.crcmod
-    #python311
-    #python311Packages.crcmod
+    python311
+    python311Packages.crcmod
     #python311Packages.qtile-extras
     xfce.xfce4-power-manager
     dunst
     #polybar
     #polybar-pulseaudio-control
-    pulseaudio # we want the command line tools see https://nixos.wiki/wiki/PipeWire
     brave
     xfce.thunar
     xfce.thunar-volman
@@ -412,21 +376,22 @@ in
     mbuffer
   ];
 
-  fonts = {
-    # Font configuration can also be important
-    fontconfig.enable = true;
-    fontDir.enable = true;
-    packages = with pkgs; [  
-      monoid
-      victor-mono
-      cascadia-code
-      fira-code
-      nerdfonts
-      font-awesome
-      google-fonts
-      dejavu_fonts
-      open-sans
-    ];
+  fonts.fontDir.enable = true;
+  fonts.packages = with pkgs; [  
+    monoid
+    victor-mono
+    cascadia-code
+    fira-code
+    nerdfonts
+    font-awesome
+    google-fonts
+    dejavu_fonts
+    open-sans
+  ];
+  services = {
+    gvfs.enable = true;
+    dbus.enable = true;
+    envfs.enable = true;
   };
 
   xdg.portal = {

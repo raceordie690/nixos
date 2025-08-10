@@ -1,11 +1,12 @@
 { config, pkgs,  ... }:
 let
-  unstable = import <unstable> {};
+  unstable = import <unstable> {
+    config.allowUnfree = true;
+    allowUnfreePredicate = (_: true);
+  };
 in {
   environment.systemPackages = with unstable; [ 
-    python311
-    qtile
-    python311Packages.qtile
-    go_1_22
+    #python311
+    #qtile
   ];
 }
