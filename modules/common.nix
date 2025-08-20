@@ -1,0 +1,245 @@
+{ config, lib, pkgs, ... }:
+let
+  user = "robert";
+in
+{
+
+  # Add settings for the Nix daemon here.
+  nix.settings = {
+    # Ensure flakes are enabled.
+    experimental-features = [ "nix-command" "flakes" ];
+    allowed-users = [ "@wheel" ];
+    # Increase the download buffer to 64 MiB to handle larger files.
+    # The value is in bytes. 64 * 1024 * 1024 = 67108864
+    download-buffer-size = 67108864;
+  };
+
+
+  # Locale/time
+  time.timeZone = "America/Chicago";
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  # Networking
+  networking.networkmanager.enable = true;
+  networking.firewall.enable = false;
+
+  # Firmware/udev
+  services.fwupd.enable = true;
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", ATTRS{idVendor}=="fffe", ATTRS{idProduct}=="0009", TAG+="uaccess"
+  '';
+
+  # Input
+  services.libinput.enable = true;
+  services.libinput.mouse.accelProfile = "adaptive";
+  services.libinput.mouse.accelSpeed = "-0.425";
+
+  # Sound/media
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    jack.enable = true;
+  };
+
+  # WirePlumber tuning (shared)
+  services.pipewire.wireplumber.extraConfig.bluetoothEnhancements = {
+    "monitor.bluez.properties" = {
+      "bluez5.enable-sbc-xq" = true;
+      "bluez5.enable-msbc" = true;
+      "bluez5.enable-hw-volume" = true;
+      "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
+    };
+  };
+  services.pipewire.extraConfig.pipewire-pulse."92-low-latency" = {
+    context.modules = [
+      {
+        name = "libpipewire-module-protocol-pulse";
+        args = {
+          pulse.min.req = "32/48000";
+          pulse.default.req = "32/48000";
+          pulse.max.req = "32/48000";
+          pulse.min.quantum = "32/48000";
+          pulse.max.quantum = "32/48000";
+        };
+      }
+    ];
+    stream.properties = {
+      node.latency = "32/48000";
+      resample.quality = 1;
+    };
+  };
+
+  # Services/utilities
+  services.blueman.enable = true;
+  services.printing = {
+    enable = true;
+    drivers = [ pkgs.epson-escpr ];
+    browsing = true;
+    defaultShared = true;
+  };
+  services.dbus.enable = true;
+  services.gvfs.enable = true;
+  services.envfs.enable = true;
+
+  # SSH and locate
+  services.openssh = {
+    enable = true;
+    settings.PasswordAuthentication = false;
+    settings.KbdInteractiveAuthentication = false;
+  };
+  services.locate = {
+    enable = true;
+    package = pkgs.plocate;
+  };
+
+  # User
+  users.users.${user} = {
+    isNormalUser = true;
+    initialPassword = "pwd";
+    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" ];
+    packages = with pkgs; [ ];
+  };
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
+  programs.thunar = {
+    enable = true;
+    plugins = with pkgs.xfce; [
+      thunar-archive-plugin
+      thunar-volman
+      tumbler
+    ];
+  };
+
+  # Common etc files
+  environment.etc = {
+    "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+      bluez_monitor.properties = {
+        ["bluez5.enable-sbc-xq"] = true,
+        ["bluez5.enable-msbc"] = true,
+        ["bluez5.enable-hw-volume"] = true,
+        ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+      }
+    '';
+    "wireplumber/main.lua.d/99-alsa-lowlatency.lua".text = ''
+      alsa_monitor.rules = {
+        {
+          matches = {{{ "node.name", "matches", "alsa_output.*" }}};
+          apply_properties = {
+            ["audio.format"] = "S32LE",
+            ["audio.rate"] = "96000",
+            ["api.alsa.period-size"] = 2,
+          },
+        },
+      }
+    '';
+    # Your inline GTK settings
+    "xdg/gtk-3.0/settings.ini".text = ''
+      [Settings]
+      gtk-theme-name=Cloudy-Dark-Grey
+      gtk-icon-theme-name=Windows-10-1.0
+      gtk-font-name=Sans 10
+      gtk-cursor-theme-name=breeze_cursors
+      gtk-cursor-theme-size=0
+      gtk-toolbar-style=GTK_TOOLBAR_BOTH_HORIZ
+      gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+      gtk-button-images=0
+      gtk-menu-images=0
+      gtk-enable-event-sounds=1
+      gtk-enable-input-feedback-sounds=1
+      gtk-xft-antialias=1
+      gtk-xft-hinting=1
+      gtk-xft-hintstyle=hintmedium
+    '';
+    # Fixed the path here: xdg/gtk-2.0 (slash, not dot)
+    "xdg/gtk-2.0/gtkfilechooser.ini".text = ''
+      [Filechooser Settings]
+      LocationMode=path-bar
+      ShowHidden=false
+      ShowSizeColumn=true
+      GeometryX=0
+      GeometryY=79
+      GeometryWidth=948
+      GeometryHeight=643
+      SortColumn=name
+      SortOrder=ascending
+      StartupMode=recent
+    '';
+  };
+
+  # Core packages shared by all hosts
+  environment.systemPackages = with pkgs; [
+    gnome-keyring
+    sops 
+    age
+    via 
+    swtpm
+    xsettingsd
+    htop 
+    git 
+    wget 
+    ripgrep 
+    unzip 
+    tldr 
+    trash-cli 
+    zoxide 
+    glibc 
+    gnumake 
+    pkg-config
+    blueman
+    fontpreview 
+    gcolor3
+    gparted
+    pavucontrol
+    qt6.qmake
+    ranger
+    scrot
+    vim_configurable
+    wireplumber
+    wl-color-picker
+    xdg-utils
+    mbuffer
+    libsecret
+    neofetch
+    vlc
+
+    # Apps
+    google-chrome
+    brave
+    mpv
+
+    kitty
+    gtk3
+    gtk4
+    figlet
+    networkmanagerapplet
+    gtklock
+
+  ];
+
+  # Fonts
+  fonts = {
+    fontconfig.enable = true;
+    fontDir.enable = true;
+    packages = with pkgs; [
+      monoid
+      victor-mono
+      cascadia-code
+      font-awesome
+      google-fonts
+      dejavu_fonts
+      open-sans
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.symbols-only
+      noto-fonts
+      noto-fonts-emoji
+    ];
+  };
+
+  # Keep the install base aligned across hosts
+  system.stateVersion = "23.11";
+}
