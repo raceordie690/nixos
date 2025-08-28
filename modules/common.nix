@@ -17,6 +17,7 @@ in
 
   # Locale/time
   time.timeZone = "America/Chicago";
+  services.timesyncd.enable = true;
   i18n.defaultLocale = "en_US.UTF-8";
 
   # Networking
@@ -173,6 +174,7 @@ in
 
   # Core packages shared by all hosts
   environment.systemPackages = with pkgs; [
+    libva-utils # For checking hardware acceleration status with `vainfo`
     gnome-keyring
     sops 
     age
@@ -208,8 +210,6 @@ in
     vlc
 
     # Apps
-    google-chrome
-    brave
     mpv
 
     kitty
