@@ -52,6 +52,23 @@
         ];
       };
 
+      nixbeast = mkHost {
+        hostname = "nixbeast";
+        modules = [
+          # Hardware
+          nixos-hardware.nixosModules.common-cpu-amd
+          nixos-hardware.nixosModules.common-cpu-amd-pstate
+
+          # Shared config and roles
+          ./modules/common.nix
+          ./modules/zfs-common.nix
+          ./modules/roles/desktop-gnome.nix
+
+          # Host-specific config
+          ./hosts/nixbeast/hardware-configuration.nix
+          ./hosts/nixbeast/configuration.nix
+        ];
+      };
       # Add future machines like:
       # atlas = mkHost {
       #   hostname = "atlas";

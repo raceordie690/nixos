@@ -31,9 +31,11 @@ in
   '';
 
   # Input
-  services.libinput.enable = true;
-  services.libinput.mouse.accelProfile = "adaptive";
-  services.libinput.mouse.accelSpeed = "-0.425";
+  services.libinput = {
+    enable = true;
+    mouse.accelProfile = "adaptive";
+    mouse.accelSpeed = "-0.425";
+  };
 
   # Sound/media
   security.rtkit.enable = true;
@@ -107,14 +109,7 @@ in
     enable = true;
     enableSSHSupport = true;
   };
-  programs.thunar = {
-    enable = true;
-    plugins = with pkgs.xfce; [
-      thunar-archive-plugin
-      thunar-volman
-      tumbler
-    ];
-  };
+
 
   # Common etc files
   environment.etc = {
@@ -240,6 +235,5 @@ in
     ];
   };
 
-  # Keep the install base aligned across hosts
-  system.stateVersion = "23.11";
+
 }
