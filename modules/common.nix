@@ -169,6 +169,7 @@ in
 
   # Core packages shared by all hosts
   environment.systemPackages = with pkgs; [
+    stow
     libva-utils # For checking hardware acceleration status with `vainfo`
     gnome-keyring
     sops 

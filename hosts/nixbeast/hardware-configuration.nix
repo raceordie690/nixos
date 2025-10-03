@@ -19,6 +19,9 @@
     zfs.forceImportRoot = true;
 
     loader.systemd-boot.extraInstallCommands = ''
+      set -euxo pipefail
+      export PATH=${pkgs.coreutils}/bin:${pkgs.util-linux}/bin:${pkgs.rsync}/bin:$PATH
+      
       # Mount secondary EFI partition
       mkdir -p /mnt/bootbackup
       mount /dev/nvme1n1p1 /mnt/bootbackup
