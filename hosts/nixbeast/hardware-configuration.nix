@@ -10,7 +10,7 @@
 
   networking.hostName = "nixbeast";
   boot = {
-    loader.efi.efiSysMountPoint = "/boot/efi";
+    loader.efi.efiSysMountPoint = "/boot";
     initrd.availableKernelModules = [ "nvme" "xhci_pci" "thunderbolt" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
     initrd.kernelModules = [ ];
     kernelModules = [ "kvm-amd" ];
@@ -21,7 +21,7 @@
     loader.systemd-boot.extraInstallCommands = ''
       set -euxo pipefail
       export PATH=${pkgs.coreutils}/bin:${pkgs.util-linux}/bin:${pkgs.rsync}/bin:$PATH
-      
+
       # Mount secondary EFI partition
       mkdir -p /mnt/bootbackup
       mount /dev/nvme1n1p1 /mnt/bootbackup
@@ -34,7 +34,7 @@
   };
 
 
-  fileSystems."/boot/efi" = {
+  fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/8ABD-4347";
     fsType = "vfat";
     options = [ "fmask=0077" "dmask=0077" ];
@@ -42,7 +42,7 @@
 
   fileSystems = {
     "/" =
-      { device = "rpool/root";
+      { device = "rpool/ROOT/nixbeast";
         fsType = "zfs";
       };
 
@@ -76,7 +76,7 @@
 	{ device = "/dev/disk/by-uuid/1cc2eaa6-e42e-433a-84c8-38aeab5889b3"; }
 	{ device = "/dev/disk/by-uuid/8d5018e9-6c0e-4590-9ee5-7f808908b4eb"; }
   ];
-  networking.hostId = "50e55c8e";  
+  networking.hostId = "8425e349";  
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.enableRedistributableFirmware = true;

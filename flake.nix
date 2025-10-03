@@ -58,11 +58,13 @@
           # Hardware
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-cpu-amd-pstate
+          nixos-hardware.nixosModules.common-gpu-amd
+          ./modules/amdgpu.nix
 
           # Shared config and roles
           ./modules/common.nix
           ./modules/zfs-common.nix
-          ./modules/roles/desktop-gnome.nix
+           ./modules/roles/desktop-wayland.nix  
 
           # Host-specific config
           ./hosts/nixbeast/hardware-configuration.nix

@@ -25,30 +25,6 @@
     HandlePowerKey = "sleep";
   '';
 
-  # Virtualization stack unique to this host
-  programs.virt-manager.enable = true;
-  virtualisation.libvirtd = {
-    enable = true;
-    onShutdown = "suspend";
-    onBoot = "ignore";
-    qemu = {
-      package = pkgs.qemu_kvm;
-      ovmf.enable = true;
-      ovmf.packages = [ pkgs.OVMFFull.fd ];
-      swtpm.enable = true;
-      runAsRoot = false;
-    };
-  };
-  virtualisation.spiceUSBRedirection.enable = true;
-
-  # OVMF files in /etc
-  environment.etc = {
-    "ovmf/edk2-x86_64-secure-code.fd".source =
-      config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-x86_64-secure-code.fd";
-    "ovmf/edk2-i386-vars.fd".source =
-      config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-i386-vars.fd";
-  };
-
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #
