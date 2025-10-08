@@ -1,4 +1,17 @@
 { config, lib, pkgs, unstablePkgs, ... }:
+let
+  # This derivation packages all custom assets into a Nix store path.
+  # All folders from `../assets` are copied into `$out/share/`
+  # within the resulting package (e.g., wallpapers -> $out/share/wallpapers).
+  custom-assets = pkgs.stdenv.mkDerivation {
+    name = "robert-assets";
+    src = ../assets;
+    installPhase = ''
+      mkdir -p $out/share
+      cp -r $src/* $out/share/
+    '';
+  };
+in
 {
   # This override ensures that any part of your system asking for the
   # `xdg-desktop-portal-hyprland` package gets the version from `unstablePkgs`. In a
@@ -11,18 +24,24 @@
     })
   ];
 
-  # Login/display: greetd launching Hyprland
-  services.greetd = {
+  # Login/display: SDDM with Wayland support and dark theming
+  services.displayManager.sddm = {
     enable = true;
-    # Setting restart to true is intended for development and can cause
-    # instability during a `nixos-rebuild switch`. The default is false.
-    restart = false;
+    wayland.enable = true;
+    theme = "breeze";
     settings = {
-      default_session = {
-        # tuigreet will look for .desktop files in /usr/share/wayland-sessions
-        # This gives you a menu to choose Hyprland or other available sessions
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --remember --time";
-        user = "greeter";
+      Theme = {
+        Current = "breeze";
+        CursorTheme = "breeze_cursors";
+        CursorSize = "48";
+      };
+      General = {
+        DisplayServer = "wayland";
+        GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.3333,QT_AUTO_SCREEN_SCALE_FACTOR=1.3333";
+      };
+      Users = {
+        MaximumUid = "60000";
+        MinimumUid = "1000";
       };
     };
   };
@@ -51,7 +70,7 @@
   '';
 
   # Make sure SDDM/X11 isn't also enabled in this role
-  services.displayManager.sddm.enable = lib.mkForce false;
+  # services.displayManager.sddm.enable = lib.mkForce false;
   services.xserver.enable = lib.mkForce false;
 
   services.tumbler.enable = true;
@@ -87,8 +106,25 @@
       unstablePkgs.xdg-desktop-portal-hyprland
       pkgs.xdg-desktop-portal-gtk
     ];
+    # Explicitly configure which portal handles which interface
+    config = {
+      common = {
+        default = [
+          "gtk"
+        ];
+      };
+      hyprland = {
+        default = [
+          "hyprland"
+          "gtk"
+        ];
+        # Ensure settings interface is handled by GTK portal
+        "org.freedesktop.impl.portal.Settings" = [
+          "gtk"
+        ];
+      };
+    };
   };
-
 
   # Wayland-friendly environment. Avoid forcing X11 platforms.
   environment.variables = {
@@ -112,5 +148,12 @@
     unstablePkgs.wlr-randr
     adwaita-icon-theme
     qt6ct
+    
+    # SDDM theming
+    libsForQt5.breeze-qt5
+    libsForQt5.breeze-icons
+
+    # Deploy custom assets to the system profile
+    custom-assets
   ];
 }
