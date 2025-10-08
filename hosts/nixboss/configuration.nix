@@ -4,7 +4,7 @@
   nix.settings = {
     max-jobs = "auto";
     cores = 16;
-  }
+  };
   # Enable the comprehensive AMD GPU configuration from our new module.
   drivers.amdgpu.enable = true;
 

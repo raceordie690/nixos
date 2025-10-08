@@ -18,72 +18,72 @@
 #      ];
 #    };
 #  };
-outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }:
-  let
-    # Define package sets for each system architecture.
-    # This makes it easy to reference stable and unstable packages.
-    pkgsFor = system: import nixpkgs {
-      inherit system;
-      config.allowUnfree = true;
-    };
-    unstablePkgsFor = system: import nixpkgs-unstable {
-      inherit system;
-      config.allowUnfree = true;
-    };
-
-    mkHost = { hostname, system ? "x86_64-linux", modules ? [ ] }:
-      nixpkgs.lib.nixosSystem {
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }:
+    let
+      # Define package sets for each system architecture.
+      # This makes it easy to reference stable and unstable packages.
+      pkgsFor = system: import nixpkgs {
         inherit system;
-        pkgs = pkgsFor system;
-        specialArgs = { inherit hostname; unstablePkgs = unstablePkgsFor system; };
-        modules = modules;
+        config.allowUnfree = true;
       };
-  in {
-    nixosConfigurations = {
-      nixboss = mkHost {
-        hostname = "nixboss";
-        modules = [
-          # Hardware (generic AMD + specific IGPU module you used)
-          nixos-hardware.nixosModules.common-cpu-amd
-          nixos-hardware.nixosModules.common-cpu-amd-pstate
-          nixos-hardware.nixosModules.common-gpu-amd
-          "${nixos-hardware}/common/cpu/amd/raphael/igpu.nix"
-          ./modules/amdgpu.nix
-
-          # Shared config and roles
-          ./modules/common.nix
-          ./modules/zfs-common.nix
-          #./modules/roles/desktop-x11-qtile.nix
-          # Switch to Wayland Qtile role
-          ./modules/roles/desktop-wayland.nix
-          ./modules/sddm-theme.nix  
-
-          # Host-specific config
-          ./hosts/nixboss/hardware-configuration.nix
-          ./hosts/nixboss/configuration.nix
-        ];
+      unstablePkgsFor = system: import nixpkgs-unstable {
+        inherit system;
+        config.allowUnfree = true;
       };
 
-      nixbeast = mkHost {
-        hostname = "nixbeast";
-        modules = [
-          # Hardware
-          nixos-hardware.nixosModules.common-cpu-amd
-          nixos-hardware.nixosModules.common-cpu-amd-pstate
-          nixos-hardware.nixosModules.common-gpu-amd
-          ./modules/amdgpu.nix
+      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ] }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          pkgs = pkgsFor system;
+          specialArgs = { inherit hostname; unstablePkgs = unstablePkgsFor system; };
+          modules = modules;
+        };
+    in {
+      nixosConfigurations = {
+        nixboss = mkHost {
+          hostname = "nixboss";
+          modules = [
+            # Hardware (generic AMD + specific IGPU module you used)
+            nixos-hardware.nixosModules.common-cpu-amd
+            nixos-hardware.nixosModules.common-cpu-amd-pstate
+            nixos-hardware.nixosModules.common-gpu-amd
+            "${nixos-hardware}/common/cpu/amd/raphael/igpu.nix"
+            ./modules/amdgpu.nix
 
-          # Shared config and roles
-          ./modules/common.nix
-          ./modules/zfs-common.nix
-          ./modules/roles/desktop-wayland.nix
-          ./modules/sddm-theme.nix  
+            # Shared config and roles
+            ./modules/common.nix
+            ./modules/zfs-common.nix
+            #./modules/roles/desktop-x11-qtile.nix
+            # Switch to Wayland Qtile role
+            ./modules/roles/desktop-wayland.nix
+            ./modules/sddm-theme.nix  
 
-          # Host-specific config
-          ./hosts/nixbeast/hardware-configuration.nix
-          ./hosts/nixbeast/configuration.nix
-        ];
-      };
+            # Host-specific config
+            ./hosts/nixboss/hardware-configuration.nix
+            ./hosts/nixboss/configuration.nix
+          ];
+        };
+
+        nixbeast = mkHost {
+          hostname = "nixbeast";
+          modules = [
+            # Hardware
+            nixos-hardware.nixosModules.common-cpu-amd
+            nixos-hardware.nixosModules.common-cpu-amd-pstate
+            nixos-hardware.nixosModules.common-gpu-amd
+            ./modules/amdgpu.nix
+
+            # Shared config and roles
+            ./modules/common.nix
+            ./modules/zfs-common.nix
+            ./modules/roles/desktop-wayland.nix
+            ./modules/sddm-theme.nix  
+
+            # Host-specific config
+            ./hosts/nixbeast/hardware-configuration.nix
+            ./hosts/nixbeast/configuration.nix
+          ];
+        };
       # Add future machines like:
       # atlas = mkHost {
       #   hostname = "atlas";
@@ -100,6 +100,6 @@ outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }
       #     ./hosts/atlas/configuration.nix
       #   ];
       # };
+      };
     };
-  };
 }
