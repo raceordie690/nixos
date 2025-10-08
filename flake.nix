@@ -55,7 +55,8 @@ outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }
           ./modules/zfs-common.nix
           #./modules/roles/desktop-x11-qtile.nix
           # Switch to Wayland Qtile role
-          ./modules/roles/desktop-wayland.nix  
+          ./modules/roles/desktop-wayland.nix
+          ./modules/sddm-theme.nix  
 
           # Host-specific config
           ./hosts/nixboss/hardware-configuration.nix
@@ -75,7 +76,8 @@ outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }
           # Shared config and roles
           ./modules/common.nix
           ./modules/zfs-common.nix
-          ./modules/roles/desktop-wayland.nix  
+          ./modules/roles/desktop-wayland.nix
+          ./modules/sddm-theme.nix  
 
           # Host-specific config
           ./hosts/nixbeast/hardware-configuration.nix

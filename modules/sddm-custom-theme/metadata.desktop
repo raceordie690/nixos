@@ -1,0 +1,14 @@
+[SddmGreeterTheme]
+Name=Custom Random Wallpaper
+Description=A custom SDDM theme with random wallpapers and blur effect
+Author=Robert
+Copyright=GPL
+License=GPL
+Type=sddm-theme
+Version=1.0
+Website=
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=
+Theme-Id=sddm-custom-theme
+Theme-API=2.0

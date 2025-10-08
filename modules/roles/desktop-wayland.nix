@@ -24,24 +24,14 @@ in
     })
   ];
 
-  # Login/display: SDDM with Wayland support and dark theming
+  # Login/display: SDDM with Wayland support and custom theme
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
-    theme = "breeze";
     settings = {
-      Theme = {
-        Current = "breeze";
-        CursorTheme = "breeze_cursors";
-        CursorSize = "48";
-      };
       General = {
         DisplayServer = "wayland";
         GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.3333,QT_AUTO_SCREEN_SCALE_FACTOR=1.3333";
-      };
-      Users = {
-        MaximumUid = "60000";
-        MinimumUid = "1000";
       };
     };
   };
