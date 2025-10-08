@@ -22,14 +22,15 @@ let
   };
 
   # Create a script to copy wallpapers to /usr/share/wallpapers
-  wallpaper-setup = pkgs.writeScriptBin "setup-wallpapers" ''
-    #!/bin/bash
+  wallpaper-setup = pkgs.writeShellScriptBin "setup-wallpapers" ''
+    set -euo pipefail
     
     # Create the wallpapers directory if it doesn't exist
     mkdir -p /usr/share/wallpapers
     
     # Copy wallpapers from your custom assets
     if [ -d "${custom-assets}/share/wallpapers" ]; then
+      echo "Copying wallpapers from custom assets..."
       cp -f "${custom-assets}/share/wallpapers/"* /usr/share/wallpapers/ 2>/dev/null || true
     fi
     
@@ -38,6 +39,7 @@ let
       "/run/current-system/sw/share/wallpapers" \
       "/run/current-system/sw/share/backgrounds"; do
       if [ -d "$wallpaper_dir" ]; then
+        echo "Copying wallpapers from $wallpaper_dir..."
         find "$wallpaper_dir" -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.bmp" | \
         head -20 | while read -r file; do
           cp "$file" /usr/share/wallpapers/ 2>/dev/null || true
@@ -47,7 +49,7 @@ let
     
     # Ensure we have at least one wallpaper
     if [ ! "$(ls -A /usr/share/wallpapers 2>/dev/null)" ]; then
-      # Create a simple gradient fallback
+      echo "Creating fallback wallpaper..."
       ${pkgs.imagemagick}/bin/convert -size 1920x1080 gradient:#1e1e2e-#313244 /usr/share/wallpapers/default.jpg
     fi
     
@@ -55,8 +57,8 @@ let
     chmod 755 /usr/share/wallpapers
     chmod 644 /usr/share/wallpapers/* 2>/dev/null || true
     
-    echo "Wallpapers copied to /usr/share/wallpapers:"
-    ls -la /usr/share/wallpapers/
+    echo "Wallpapers setup complete. Contents of /usr/share/wallpapers:"
+    ls -la /usr/share/wallpapers/ || true
   '';
 
 in {
@@ -113,8 +115,26 @@ in {
   };
 
   # Create the wallpapers directory structure
-  system.activationScripts.sddm-wallpapers = ''
+  system.activationScripts.sddm-wallpapers = lib.mkAfter ''
+    echo "Setting up SDDM wallpapers..."
     mkdir -p /usr/share/wallpapers
-    ${wallpaper-setup}/bin/setup-wallpapers
+    
+    # Copy wallpapers from custom assets if available
+    if [ -d "${custom-assets}/share/wallpapers" ]; then
+      echo "Copying custom wallpapers..."
+      cp -f "${custom-assets}/share/wallpapers/"* /usr/share/wallpapers/ 2>/dev/null || true
+    fi
+    
+    # Create fallback wallpaper if none exist
+    if [ ! "$(ls -A /usr/share/wallpapers 2>/dev/null)" ]; then
+      echo "Creating fallback wallpaper..."
+      ${pkgs.imagemagick}/bin/convert -size 1920x1080 gradient:#1e1e2e-#313244 /usr/share/wallpapers/default.jpg || true
+    fi
+    
+    # Set permissions
+    chmod 755 /usr/share/wallpapers || true
+    chmod 644 /usr/share/wallpapers/* 2>/dev/null || true
+    
+    echo "SDDM wallpapers setup complete."
   '';
 }

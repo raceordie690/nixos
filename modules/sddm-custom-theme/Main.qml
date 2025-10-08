@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import SddmComponents 2.0
 import Qt.labs.folderlistmodel 2.15
-import "components" as UserComponents
 
 Rectangle {
     id: container
@@ -11,7 +10,7 @@ Rectangle {
     LayoutMirroring.enabled: Qt.locale().textDirection == Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
     
-    property int sessionIndex: session.index
+    property int sessionIndex: typeof session !== "undefined" ? session.index : 0
     
     Connections {
         target: sddm
@@ -104,8 +103,8 @@ Rectangle {
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: 40
-        width: childrenRect.width + 20
-        height: childrenRect.height + 20
+        width: 200
+        height: 80
         color: "#313244"
         opacity: 0.8
         radius: 10
@@ -178,24 +177,22 @@ Rectangle {
                 color: "#45475a"
                 anchors.horizontalCenter: parent.horizontalCenter
                 
-                Rectangle {
-                    id: userPictureClip
-                    width: parent.width - 4
-                    height: parent.height - 4
-                    anchors.centerIn: parent
-                    radius: width / 2
-                    color: "#45475a"
-                    clip: true
-                    
-                    Image {
-                        id: userPicture
-                        anchors.fill: parent
-                        source: userModel.lastUser !== "" ? "file:///var/lib/AccountsService/icons/" + userModel.lastUser : ""
-                        fillMode: Image.PreserveAspectCrop
-                        smooth: true
-                    }
-                    
                     Rectangle {
+                        id: userPictureClip
+                        width: parent.width - 4
+                        height: parent.height - 4
+                        anchors.centerIn: parent
+                        radius: width / 2
+                        color: "#45475a"
+                        clip: true
+                        
+                        Image {
+                            id: userPicture
+                            anchors.fill: parent
+                            source: typeof userModel !== "undefined" && userModel.lastUser !== "" ? "file:///var/lib/AccountsService/icons/" + userModel.lastUser : ""
+                            fillMode: Image.PreserveAspectCrop
+                            smooth: true
+                        }                    Rectangle {
                         anchors.fill: parent
                         radius: parent.width / 2
                         color: "transparent"
@@ -235,7 +232,7 @@ Rectangle {
                     
                     Text {
                         anchors.fill: parent
-                        text: textConstants.userName
+                        text: typeof textConstants !== "undefined" ? textConstants.userName : "Username"
                         color: "#6c7086"
                         verticalAlignment: Text.AlignVCenter
                         visible: userNameInput.text.length === 0 && !userNameInput.activeFocus
@@ -275,7 +272,7 @@ Rectangle {
                     
                     Text {
                         anchors.fill: parent
-                        text: textConstants.password
+                        text: typeof textConstants !== "undefined" ? textConstants.password : "Password"
                         color: "#6c7086"
                         verticalAlignment: Text.AlignVCenter
                         visible: password.text.length === 0 && !password.activeFocus
@@ -303,7 +300,7 @@ Rectangle {
                 
                 Text {
                     anchors.centerIn: parent
-                    text: textConstants.login
+                    text: typeof textConstants !== "undefined" ? textConstants.login : "Login"
                     color: "#1e1e2e"
                     font.pointSize: 14
                     font.bold: true
@@ -359,7 +356,7 @@ Rectangle {
             // Session selection
             Rectangle {
                 id: sessionButton
-                width: childrenRect.width + 20
+                width: 120
                 height: 40
                 color: "#45475a"
                 radius: 6
@@ -376,7 +373,7 @@ Rectangle {
                     
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: session.lastSession
+                        text: typeof session !== "undefined" ? session.lastSession : "Hyprland"
                         color: "#cdd6f4"
                         font.pointSize: 12
                     }
@@ -398,7 +395,7 @@ Rectangle {
             // Keyboard layout
             Rectangle {
                 id: layoutBox
-                width: childrenRect.width + 20
+                width: 100
                 height: 40
                 color: "#45475a"
                 radius: 6
@@ -415,7 +412,7 @@ Rectangle {
                     
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: keyboard.layouts[keyboard.currentLayout].shortName
+                        text: typeof keyboard !== "undefined" && keyboard.layouts && keyboard.layouts[keyboard.currentLayout] ? keyboard.layouts[keyboard.currentLayout].shortName : "US"
                         color: "#cdd6f4"
                         font.pointSize: 12
                     }
