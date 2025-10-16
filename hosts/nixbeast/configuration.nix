@@ -4,9 +4,18 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [
+    ./intel_e610.nix   # add this line
+  ];
+
+
+  nix.settings = {
+    max-jobs = "auto";
+    cores = 32;
+  };
   # Use a specific kernel version for this host.
   # The unstable kernel is aliased to `pkgs.linuxPackages_latest`
-  boot.kernelPackages = pkgs.linuxPackages_6_16;
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
 
    # Use the systemd-boot EFI boot loader.
   boot.loader = {

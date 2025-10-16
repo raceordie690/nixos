@@ -65,6 +65,8 @@ in
 
   services.tumbler.enable = true;
   services.gvfs.enable = true;
+  # Enable power management service
+  services.upower.enable = true;
 
   # Wayland plumbing
   programs.xwayland.enable = true;    # XWayland for X11-only apps

@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import QtGraphicalEffects 1.15
 import SddmComponents 2.0
 import Qt.labs.folderlistmodel 2.15
 
@@ -41,14 +42,34 @@ Rectangle {
         // Folder model to get wallpapers
         FolderListModel {
             id: wallpaperModel
-            folder: "file:///usr/share/wallpapers"
+            folder: "file:///usr/share/sddm-wallpapers"
             nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.bmp"]
             showDirs: false
             
+            property int currentRandomIndex: -1
+            
             Component.onCompleted: {
+                console.log("Wallpaper model loaded, count:", count)
+                selectRandomWallpaper()
+            }
+            
+            onCountChanged: {
                 if (count > 0) {
-                    var randomIndex = Math.floor(Math.random() * count)
+                    selectRandomWallpaper()
+                }
+            }
+            
+            function selectRandomWallpaper() {
+                if (count > 0) {
+                    // Generate a truly random index using current time
+                    var seed = new Date().getTime()
+                    var randomIndex = Math.floor((seed % count))
+                    currentRandomIndex = randomIndex
+                    console.log("Selected wallpaper index:", randomIndex, "of", count)
                     backgroundImage.source = get(randomIndex, "fileURL")
+                } else {
+                    console.log("No wallpapers found, using fallback")
+                    backgroundImage.source = "file:///usr/share/sddm-wallpapers/default.jpg"
                 }
             }
         }
@@ -57,43 +78,49 @@ Rectangle {
             id: backgroundImage
             anchors.fill: parent
             fillMode: Image.PreserveAspectCrop
-            source: "file:///usr/share/wallpapers/default.jpg" // fallback
+            source: "file:///usr/share/sddm-wallpapers/default.jpg" // fallback
             asynchronous: true
+            smooth: true
             
-            // Simple blur effect using multiple overlays
-            Rectangle {
-                anchors.fill: parent
-                color: "#1e1e2e"
-                opacity: 0.3
+            onStatusChanged: {
+                if (status === Image.Error) {
+                    console.log("Failed to load wallpaper, trying fallback")
+                    source = "file:///usr/share/sddm-wallpapers/default.jpg"
+                }
             }
         }
         
-        // Additional blur simulation with scaled and blurred copies
-        Image {
-            id: blurLayer1
-            anchors.fill: parent
-            anchors.margins: -20
-            source: backgroundImage.source
-            fillMode: Image.PreserveAspectCrop
-            opacity: 0.4
-            transform: Scale { xScale: 1.02; yScale: 1.02 }
+        // Proper blur effect using QtGraphicalEffects
+        FastBlur {
+            id: backgroundBlur
+            anchors.fill: backgroundImage
+            source: backgroundImage
+            radius: 64
+            cached: true
+            
+            // Dark overlay for better readability
+            Rectangle {
+                anchors.fill: parent
+                color: "#000000"
+                opacity: 0.4
+            }
         }
         
-        Image {
-            id: blurLayer2
-            anchors.fill: parent
-            anchors.margins: -40
-            source: backgroundImage.source
-            fillMode: Image.PreserveAspectCrop
-            opacity: 0.2
-            transform: Scale { xScale: 1.04; yScale: 1.04 }
+        // Force wallpaper refresh on visibility change
+        Timer {
+            id: refreshTimer
+            interval: 500
+            running: false
+            repeat: false
+            onTriggered: {
+                if (wallpaperModel.count > 0) {
+                    wallpaperModel.selectRandomWallpaper()
+                }
+            }
         }
         
-        // Dark overlay for better readability
-        Rectangle {
-            anchors.fill: parent
-            color: "#000000"
-            opacity: 0.4
+        Component.onCompleted: {
+            refreshTimer.start()
         }
     }
     

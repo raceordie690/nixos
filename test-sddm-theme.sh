@@ -16,13 +16,13 @@ fi
 
 # Check wallpapers directory
 echo
-echo "Wallpapers in /usr/share/wallpapers:"
-if [ -d "/usr/share/wallpapers" ]; then
-    ls -la /usr/share/wallpapers/
-    COUNT=$(ls /usr/share/wallpapers/*.{jpg,jpeg,png,bmp} 2>/dev/null | wc -l || echo "0")
+echo "Wallpapers in /usr/share/sddm-wallpapers:"
+if [ -d "/usr/share/sddm-wallpapers" ]; then
+    ls -la /usr/share/sddm-wallpapers/
+    COUNT=$(ls /usr/share/sddm-wallpapers/*.{jpg,jpeg,png,bmp} 2>/dev/null | wc -l || echo "0")
     echo "Found $COUNT wallpaper files"
 else
-    echo "✗ /usr/share/wallpapers directory does not exist"
+    echo "✗ /usr/share/sddm-wallpapers directory does not exist"
 fi
 
 # Check SDDM configuration
