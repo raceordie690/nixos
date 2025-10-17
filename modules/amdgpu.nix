@@ -39,16 +39,16 @@ in
     };
 
     # NixOS options for AMD GPU features.
+    # Enable opencl(rocm), RADV(mesa vulkan), and amdvlk (AMD vulkan)
     hardware.amdgpu = {
       # Enable ROCm OpenCL support. This is a high-level option that correctly
       # configures the necessary packages.
       opencl.enable = true;
 
-      # Optionally enable the alternative AMDVLK Vulkan driver.
-      # RADV is generally recommended for gaming, but AMDVLK can be better for
-      # some professional applications.
+      # Enable the alternative AMDVLK Vulkan driver.
       amdvlk.enable = true;
-    };
+    };  # Install the AMDVLK driver for 64-bit applications
+   
 
     # These settings are for an X11 session. They won't have an effect
     # with your current Wayland setup but are good to have for a complete module

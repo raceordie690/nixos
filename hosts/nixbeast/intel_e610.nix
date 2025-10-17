@@ -58,7 +58,7 @@ let
         exit 1
       fi
 
-      # Some generators need ARCH and CC; provide sensible defaults
+      # Some generators need initrd.kernelModules = ["ixgbe" ]; ARCH and CC; provide sensible defaults
       export ARCH="$(uname -m)"
       export CC="${pkgs.stdenv.cc.targetPrefix}gcc" || true
 
@@ -126,8 +126,9 @@ let
   };
 in
 {
-  config = {
-    boot.extraModulePackages = [ ixgbeVendor ];
-    # boot.blacklistedKernelModules = [ "ixgbe" ];
+  config.boot = {
+    extraModulePackages = [ ixgbeVendor ];
+    initrd.kernelModules = [  "ixgbe" ];
+    blacklistedKernelModules = [ "ixgbe" ];
   };
 }

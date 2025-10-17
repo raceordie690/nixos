@@ -36,28 +36,28 @@ in
     };
   };
 
-  systemd.user.services.xsettingsd = {
-    description = "XSettings daemon for GTK theming";
-    after = [ "graphical-session-pre.target" ];
-    partOf = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
-    serviceConfig = {
-      ExecStart = "${pkgs.xsettingsd}/bin/xsettingsd --replace";
-      Restart = "on-failure";
-    };
-  };
+  # Use the dedicated module for xsettingsd for better integration.
+  # This replaces the manual systemd service and environment.etc file.
+  #programs.xsettingsd = {
+  #  enable = true;
+  #  settings = {
+  #    # Centralized theme settings, formerly in common.nix
+  #    "Net/ThemeName" = "Cloudy-Dark-Grey";
+  #    "Net/IconThemeName" = "Windows-10-1.0";
+  #    "Gtk/CursorThemeName" = "breeze_cursors";
+  #    "Gtk/CursorThemeSize" = 24; # Using 24 from previous xsettingsd config, 0 from settings.ini is often too small.
+  #    "Gtk/FontName" = "Sans 10";
+  #    "Xft/DPI" = 147456; # 96 * 1.5 = 144 DPI. 147456 is 96 * 1024 * 1.5
 
-  # This is generally not needed and can interfere with session-specific
-  # environment variables. It's better to let each session manage this.
-  # systemd.services.display-manager.environment.XDG_CURRENT_DESKTOP = "X-NIXOS-SYSTEMD-AWARE";
-
-  environment.etc."xdg/xsettingsd/xsettingsd.conf".text = ''
-    Net/ThemeName "Adwaita-dark"
-    Net/IconThemeName "Adwaita"
-    Gtk/CursorThemeName "breeze_cursors"
-    Gtk/CursorThemeSize 48
-    Xft/DPI 147456
-  '';
+  #    # Other GTK settings from the old settings.ini
+  #    "Gtk/ToolbarStyle" = "GTK_TOOLBAR_BOTH_HORIZ";
+  #    "Gtk/ToolbarIconSize" = "GTK_ICON_SIZE_LARGE_TOOLBAR";
+  #    "Gtk/ButtonImages" = 0;
+  #    "Gtk/MenuImages" = 0;
+  #    "Gtk/EnableEventSounds" = 1;
+  #    "Gtk/EnableInputFeedbackSounds" = 1;
+  #  };
+  #};
 
   # Make sure SDDM/X11 isn't also enabled in this role
   # services.displayManager.sddm.enable = lib.mkForce false;

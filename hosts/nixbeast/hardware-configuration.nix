@@ -77,7 +77,5 @@
 	{ device = "/dev/disk/by-uuid/8d5018e9-6c0e-4590-9ee5-7f808908b4eb"; }
   ];
   networking.hostId = "8425e349";  
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-  hardware.enableRedistributableFirmware = true;
+
 }

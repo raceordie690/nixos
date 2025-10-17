@@ -95,7 +95,7 @@ Rectangle {
             id: backgroundBlur
             anchors.fill: backgroundImage
             source: backgroundImage
-            radius: 64
+            radius: 4
             cached: true
             
             // Dark overlay for better readability

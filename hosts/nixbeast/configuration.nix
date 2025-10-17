@@ -5,9 +5,15 @@
 
 {
   imports = [
-    ./intel_e610.nix   # add this line
+    #./intel_e610.nix   # add this line
   ];
 
+  # optimizations for AI Max+ 395 LLM usage
+  boot.kernelParams = [
+    "amd_iommu=off"
+    "amdgpu.gttsize=131072"
+    "ttm.pages_limit=33554432"
+  ];
 
   nix.settings = {
     max-jobs = "auto";
@@ -15,7 +21,7 @@
   };
   # Use a specific kernel version for this host.
   # The unstable kernel is aliased to `pkgs.linuxPackages_latest`
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
+  boot.kernelPackages = pkgs.linuxPackages_6_16;
 
    # Use the systemd-boot EFI boot loader.
   boot.loader = {

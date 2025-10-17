@@ -4,6 +4,27 @@ let
 in
 {
 
+  boot = {
+    # silence first boot output
+    consoleLogLevel = 3;
+
+    kernelParams = [
+        "quiet"
+        "splash"
+        "boot.shell_on_fail"
+        "udev.log_priority=3"
+        "rd.systemd.show_status=auto"
+    ];
+
+    # plymouth, showing after LUKS unlock
+    plymouth.enable = true;
+  };
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware.enableRedistributableFirmware = true;
+  networking.useDHCP = lib.mkDefault true;
+
   # Add settings for the Nix daemon here.
   nix.settings = {
     # Ensure flakes are enabled.
@@ -138,36 +159,6 @@ in
         ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
       }
     '';
-    "wireplumber/main.lua.d/99-alsa-lowlatency.lua".text = ''
-      alsa_monitor.rules = {
-        {
-          matches = {{{ "node.name", "matches", "alsa_output.*" }}};
-          apply_properties = {
-            ["audio.format"] = "S32LE",
-            ["audio.rate"] = "96000",
-            ["api.alsa.period-size"] = 2,
-          },
-        },
-      }
-    '';
-    # Your inline GTK settings
-    "xdg/gtk-3.0/settings.ini".text = ''
-      [Settings]
-      gtk-theme-name=Cloudy-Dark-Grey
-      gtk-icon-theme-name=Windows-10-1.0
-      gtk-font-name=Sans 10
-      gtk-cursor-theme-name=breeze_cursors
-      gtk-cursor-theme-size=0
-      gtk-toolbar-style=GTK_TOOLBAR_BOTH_HORIZ
-      gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
-      gtk-button-images=0
-      gtk-menu-images=0
-      gtk-enable-event-sounds=1
-      gtk-enable-input-feedback-sounds=1
-      gtk-xft-antialias=1
-      gtk-xft-hinting=1
-      gtk-xft-hintstyle=hintmedium
-    '';
     # Fixed the path here: xdg/gtk-2.0 (slash, not dot)
     "xdg/gtk-2.0/gtkfilechooser.ini".text = ''
       [Filechooser Settings]
@@ -182,6 +173,26 @@ in
       SortOrder=ascending
       StartupMode=recent
     '';
+    "wireplumber/main.lua.d/99-alsa-lowlatency.lua".text = ''
+      alsa_monitor.rules = {
+        {
+          matches = {{{ "node.name", "matches", "alsa_output.*" }}};
+          apply_properties = {
+            ["audio.format"] = "S32LE",
+            ["audio.rate"] = "96000",
+            ["api.alsa.period-size"] = 2,
+          },
+        },
+      }
+    '';
+    # NOTE: The GTK3 settings.ini has been removed from here.
+    # Theming is now managed centrally by `programs.xsettingsd` in the
+    # `desktop-wayland.nix` role to avoid conflicts and provide a
+    # single source of truth for the graphical session.
+    #
+    # If you need to set themes, please modify the `programs.xsettingsd.settings`
+    # attribute set in `/home/robert/nixos/modules/roles/desktop-wayland.nix`.
+
   };
 
   # Core packages shared by all hosts
