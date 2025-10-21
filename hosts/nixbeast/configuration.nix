@@ -5,7 +5,8 @@
 
 {
   imports = [
-    #./intel_e610.nix   # add this line
+    ../../modules/amdgpu.nix
+    ../../modules/rocm.nix
   ];
 
   # optimizations for AI Max+ 395 LLM usage
@@ -14,6 +15,11 @@
     "amdgpu.gttsize=131072"
     "ttm.pages_limit=33554432"
   ];
+
+  # Enable the base AMD GPU drivers (from amdgpu.nix).
+  drivers.amdgpu.enable = true;
+  # Enable the ROCm compute stack specifically for this host (from rocm.nix).
+  drivers.rocm.enable = true;
 
   nix.settings = {
     max-jobs = "auto";
@@ -31,11 +37,8 @@
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
-  environment.systemPackages = with pkgs; [
-    # Add packages specific to nixbeast here
-    neovim
-    btop
-  ];
+  # GPU-related tools are now managed by the amdgpu.nix module.
+  environment.systemPackages = [ ]; # Add other nixbeast-specific packages here
 
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
@@ -56,4 +59,3 @@
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "25.11"; # Did you read the comment?
 }
-

@@ -24,7 +24,9 @@ in
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.enableRedistributableFirmware = true;
   networking.useDHCP = lib.mkDefault true;
-
+  # Podman is optional unless you’ll run containers, but many AI UIs assume it.
+  virtualisation.podman.enable = true;
+  
   # Add settings for the Nix daemon here.
   nix.settings = {
     # Ensure flakes are enabled.
@@ -143,6 +145,12 @@ in
     enableSSHSupport = true;
   };
 
+  # OVMF files for libvirt
+  environment.etc."ovmf/edk2-x86_64-secure-code.fd".source =
+    config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-x86_64-secure-code.fd";
+  environment.etc."ovmf/edk2-i386-vars.fd".source =
+    config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-i386-vars.fd";
+
   hardware.bluetooth =  {
     enable = true;
     powerOnBoot = true;
@@ -197,6 +205,10 @@ in
 
   # Core packages shared by all hosts
   environment.systemPackages = with pkgs; [
+    toolbox # Tool for containerized command line environments on Linux
+    neovim
+    neofetch
+    btop
     stow
     libva-utils # For checking hardware acceleration status with `vainfo`
     gnome-keyring
@@ -230,7 +242,6 @@ in
     xdg-utils
     mbuffer
     libsecret
-    neofetch
     vlc
 
     # Apps
@@ -287,13 +298,4 @@ in
     };
   };
   virtualisation.spiceUSBRedirection.enable = true;
-
-  # OVMF files in /etc
-  environment.etc = {
-    "ovmf/edk2-x86_64-secure-code.fd".source =
-      config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-x86_64-secure-code.fd";
-    "ovmf/edk2-i386-vars.fd".source =
-      config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-i386-vars.fd";
-  };
-
 }
