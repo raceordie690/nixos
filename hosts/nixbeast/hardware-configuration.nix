@@ -11,7 +11,7 @@
   networking.hostName = "nixbeast";
   boot = {
     loader.efi.efiSysMountPoint = "/efi";
-    initrd.availableKernelModules = [ "nvme" "xhci_pci" "thunderbolt" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
+    initrd.availableKernelModules = [ "nvme" "xhci_pci" "amdgpu" "thunderbolt" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
     initrd.kernelModules = [ ];
     kernelModules = [ "kvm-amd" ];
     extraModulePackages = [  ];
