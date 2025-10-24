@@ -33,5 +33,10 @@ in
       rocmPackages.rocminfo
       rocmPackages.rocm-smi
     ];
+
+    environment.variables = {
+      # ENABLE High Performance Matrix Math for LLM performance
+      ROCBLAS_USE_HIPBLASLT = 1;
+    };
   };
 }
