@@ -70,14 +70,6 @@ in
 
   # Wayland plumbing
   programs.xwayland.enable = true;    # XWayland for X11-only apps
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-    extraPackages = with pkgs; [
-      # rocmPackages.clr.icd # OpenCL is now handled by the amdgpu.nix module
-      libva # VA-API
-    ];
-  };
 
   # Hyprland system-level enablement (configuration managed by home-manager)
   programs.hyprland = {
