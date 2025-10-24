@@ -121,10 +121,12 @@ in
   # Wayland-friendly environment. Avoid forcing X11 platforms.
   environment.variables = {
     QT_AUTO_SCREEN_SCALE_FACTOR = "1.3333";
+    QT_SCREEN_SCALE_FACTORS = "1.3333";
     #QT_QPA_PLATFORM = "wayland";
     QT_QPA_PLATFORM = "wayland;xcb";
     # This is likely a typo for WLR_DRM_DEVICES, used by wlroots-based compositors.
     WLR_DRM_DEVICES = "/dev/dri/card1:/dev/dri/card0";
+    GDK_SCALE = "1.3333";
 
     XDG_SESSION_TYPE = "wayland";
     MOZ_ENABLE_WAYLAND = "1";

@@ -5,13 +5,19 @@
     max-jobs = "auto";
     cores = 16;
   };
+
+
+  boot.kernelParams = [
+    "amd_iommu=off"
+  ];
+  
   # Enable the comprehensive AMD GPU configuration from our new module.
   drivers.amdgpu.enable = true;
 
   networking.hostName = "nixboss";
   networking.hostId = "e7a6ede7";
 
-  boot.kernelPackages = pkgs.linuxPackages_6_16;
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   boot.loader = {
     systemd-boot.enable = true;

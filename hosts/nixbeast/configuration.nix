@@ -37,10 +37,15 @@
     btop
   ];
 
+  environment.variables = {
+    # ENABLE High Performance Matrix Math for LLM performance
+    ROCBLAS_USE_HIPBLASLT = 1;
+  };
+
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #
-  # Most users should NEVER change this value after the initial install, for any reason,
+  # Most users should NEVER change this valueafter the initial install, for any reason,
   # even if you've upgraded your system to a new NixOS release.
   #
   # This value does NOT affect the Nixpkgs version your packages and OS are pulled from,
