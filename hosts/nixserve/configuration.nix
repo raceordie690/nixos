@@ -28,7 +28,7 @@
   };
   # Use a specific kernel version for this host.
   # The unstable kernel is aliased to `pkgs.linuxPackages_latest`
-  boot.kernelPackages = pkgs.linuxPackages_6_16;
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
 
    # Use the systemd-boot EFI boot loader.
   boot.loader = {
@@ -47,7 +47,7 @@
       mount "$BACKUP_EFI_PART" /mnt/efibackup
 
       # Mirror contents from primary EFI partition (/boot/efi) to the backup
-      rsync -a --delete /boot/efi/ /mnt/efibackup/
+      rsync -a --delete /efi/ /mnt/efibackup/
 
       umount /mnt/efibackup
     '';

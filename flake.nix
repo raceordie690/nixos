@@ -85,8 +85,8 @@
           ];
         };
 
-        nixserv = mkHost {
-          hostname = "nixserv";
+        nixserve = mkHost {
+          hostname = "nixserve";
           modules = [
             # Hardware (assuming AMD CPU)
             nixos-hardware.nixosModules.common-cpu-amd
@@ -98,8 +98,8 @@
             ./modules/roles/headless-rocm.nix
 
             # Host-specific config
-            ./hosts/nixserv/hardware-configuration.nix
-            ./hosts/nixserv/configuration.nix
+            ./hosts/nixserve/hardware-configuration.nix
+            ./hosts/nixserve/configuration.nix
           ];
         };
       # Add future machines like:
