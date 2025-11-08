@@ -84,6 +84,24 @@
             ./hosts/nixbeast/configuration.nix
           ];
         };
+
+        nixserv = mkHost {
+          hostname = "nixserv";
+          modules = [
+            # Hardware (assuming AMD CPU)
+            nixos-hardware.nixosModules.common-cpu-amd
+            nixos-hardware.nixosModules.common-cpu-amd-pstate
+
+            # Shared config and roles
+            ./modules/common.nix
+            ./modules/zfs-common.nix # Assuming the server also uses ZFS
+            ./modules/roles/headless-rocm.nix
+
+            # Host-specific config
+            ./hosts/nixserv/hardware-configuration.nix
+            ./hosts/nixserv/configuration.nix
+          ];
+        };
       # Add future machines like:
       # atlas = mkHost {
       #   hostname = "atlas";
