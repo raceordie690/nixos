@@ -1,12 +1,13 @@
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, unstablePkgs, ... }:
 
 {
   imports = [
-    ../../modules/amdgpu.nix
+    (../../modules/amdgpu.nix)
     ../../modules/rocm.nix
+    ../../modules/rocm-overlay.nix
   ];
 
   # optimizations for AI Max+ 395 LLM usage
@@ -28,7 +29,7 @@
   };
   # Use a specific kernel version for this host.
   # The unstable kernel is aliased to `pkgs.linuxPackages_latest`
-  boot.kernelPackages = pkgs.linuxPackages_6_16;
+  boot.kernelPackages = pkgs.linuxPackages_6_17;
 
    # Use the systemd-boot EFI boot loader.
   boot.loader = {

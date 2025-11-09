@@ -289,6 +289,8 @@ in
     speedtest-cli     # Network speed testing
     iperf3            # Network performance testing
 
+    parallel
+
   ];
 
   # Fonts
