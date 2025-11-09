@@ -162,6 +162,9 @@ in
     initialPassword = "pwd";
     extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" ];
     packages = with pkgs; [ ];
+    openssh.authorizedKeys.keys = [
+      "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGOvoX3deODoSn/brDTWYmLAgLVpCJC5fuKvWXNj+oVFYt3fA9S3B8ZAs8H867tJhAbRz3FunMYJ+vPG1WqcTk0lgBY2whugExPd6WxhrTb3NVVW2Z+t6W3B5pE0nw6BL0zk+9vimIp3y0d8PBADU/5jeYz+7HodzdEol75EnX1btXeGg== robert@nixboss"
+    ];
   };
   programs.gnupg.agent = {
     enable = true;
