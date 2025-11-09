@@ -10,7 +10,6 @@ in
 
     kernelParams = [
         "quiet"
-        "splash"
         "boot.shell_on_fail"
         "udev.log_priority=3"
         "rd.systemd.show_status=auto"
@@ -23,7 +22,6 @@ in
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.enableRedistributableFirmware = true;
-  networking.useDHCP = lib.mkDefault true;
   # Podman is optional unless you’ll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
   
@@ -43,20 +41,45 @@ in
   services.timesyncd.enable = true;
   i18n.defaultLocale = "en_US.UTF-8";
 
+
   # Networking with WiFi support
-  networking.networkmanager = {
-    enable = true;
-    wifi = {
-      powersave = false;  # Disable WiFi power saving for better performance
-      backend = "wpa_supplicant";
+  networking = {
+    useDHCP = lib.mkDefault true;
+    networkmanager = {
+      enable = true;
+      wifi = {
+        powersave = false;  # Disable WiFi power saving for better performance
+        backend = "wpa_supplicant";
+      };
+      # Enable connection sharing
+      enableStrongSwan = true;
+      
+      # Force specific DNS servers and ignore auto-DNS from DHCP/IPv6 RA
+      dns = "none";  # Disable NetworkManager's DNS management
     };
-    # Enable connection sharing
-    enableStrongSwan = true;
+    
+    # Manually set DNS servers and search domains
+    nameservers = [ "192.168.1.254" ];
+    search = [ "attlocal.net" "lan" ];
+    
+    firewall.enable = false;
   };
-  networking.firewall.enable = false;
-  
   # Enable wireless regulatory domain for WiFi
   hardware.wirelessRegulatoryDatabase = true;
+
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;  # Enable IPv4 mDNS in NSS
+    nssmdns6 = true;  # Enable IPv6 mDNS in NSS (optional)
+    ipv4 = true;
+    ipv6 = true;
+    publish = {
+      enable = true;
+      addresses = true;
+      workstation = true;
+    };
+  };
+
 
   # Firmware/udev
   services.fwupd.enable = true;

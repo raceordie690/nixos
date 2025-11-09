@@ -8,6 +8,7 @@
 
 
   boot.kernelParams = [
+    "splash"
     "amd_iommu=off"
   ];
   

@@ -11,6 +11,7 @@
 
   # optimizations for AI Max+ 395 LLM usage
   boot.kernelParams = [
+    "splash"
     "amd_iommu=off"
     "amdgpu.gttsize=131072"
     "ttm.pages_limit=33554432"

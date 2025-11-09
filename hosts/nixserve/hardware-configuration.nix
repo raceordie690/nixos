@@ -41,7 +41,7 @@
       };
 
     "/efi" = 
-      { device = "/dev/disk/by-uuid/cfa5d431-4f85-49ef-acd0-995e31af4f80";
+      { device = "/dev/disk/by-partuuid/cfa5d431-4f85-49ef-acd0-995e31af4f80";
         fsType = "vfat";
         options = [ "fmask=0077" "dmask=0077" ];
       };
@@ -78,9 +78,9 @@
   };
 
   swapDevices = [
-    { device = "/dev/disk/by-uuid/450f8ae6-614e-4889-bdf2-47d44068bb70"; }
-    { device = "/dev/disk/by-uuid/9f782b49-bcdf-4731-bb91-b8d5cede0943"; }
-    { device = "/dev/disk/by-uuid/f826cfa5-e46e-4dce-a84e-03489f7b05ad"; }
+    { device = "/dev/disk/by-partuuid/450f8ae6-614e-4889-bdf2-47d44068bb70"; }
+    { device = "/dev/disk/by-partuuid/9f782b49-bcdf-4731-bb91-b8d5cede0943"; }
+    { device = "/dev/disk/by-partuuid/f826cfa5-e46e-4dce-a84e-03489f7b05ad"; }
   ];
   networking.hostId = "2b189654";  
 

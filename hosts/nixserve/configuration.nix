@@ -35,22 +35,22 @@
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
     # This script runs during `nixos-rebuild switch` to back up the primary EFI partition.
-    systemd-boot.extraInstallCommands = ''
-      set -euxo pipefail
-      export PATH=${pkgs.coreutils}/bin:${pkgs.util-linux}/bin:${pkgs.rsync}/bin:$PATH
+    #systemd-boot.extraInstallCommands = ''
+    #  set -euxo pipefail
+    #  export PATH=${pkgs.coreutils}/bin:${pkgs.util-linux}/bin:${pkgs.rsync}/bin:$PATH
 
       # Define backup EFI partition
-      BACKUP_EFI_PART="/dev/disk/by-partuuid/dafe0025-dfd4-460c-a041-6ba57fd0858b"
+#      BACKUP_EFI_PART="/dev/disk/by-partuuid/dafe0025-dfd4-460c-a041-6ba57fd0858b"
 
       # Mount secondary EFI partition
-      mkdir -p /mnt/efibackup
-      mount "$BACKUP_EFI_PART" /mnt/efibackup
+#      mkdir -p /mnt/efibackup
+#      mount "$BACKUP_EFI_PART" /mnt/efibackup
 
       # Mirror contents from primary EFI partition (/boot/efi) to the backup
-      rsync -a --delete /efi/ /mnt/efibackup/
+#      rsync -a --delete /efi/ /mnt/efibackup/
 
-      umount /mnt/efibackup
-    '';
+#      umount /mnt/efibackup
+#    '';
   };
 
   # List packages installed in system profile.
@@ -61,6 +61,12 @@
     lm_sensors # For monitoring CPU temperatures
   ]; # Add other nixserve-specific packages here
 
+  # Enable Wake-on-LAN for ethernet devices.
+  # This udev rule automatically enables the 'magic packet' setting on any device
+  # identified as an ethernet card (ATTR{type}=="1").
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="net", ATTR{type}=="1", RUN+="${pkgs.ethtool}/bin/ethtool -s %k wol g"
+  '';
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #
