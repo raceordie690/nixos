@@ -18,16 +18,8 @@
   services.ollama = {
     enable = true;
     # Use the ollama package from unstable for the latest features and fixes.
-    package = unstablePkgs.ollama;
+    package = unstablePkgs.ollama-rocm;
     acceleration = "rocm";
-  };
-
-  # Add environment variable to the ollama systemd service to support newer
-  # AMD GPUs (like gfx1201/RDNA4) that are not yet officially supported.
-  systemd.services.ollama.serviceConfig = {
-    Environment = lib.mkMerge [
-      "HSA_OVERRIDE_GFX_VERSION=11.0.0"
-    ];
   };
 
   # 3. Add users to the 'render' and 'video' groups to allow access to the GPU.
