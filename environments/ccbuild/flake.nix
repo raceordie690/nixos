@@ -11,22 +11,28 @@
     let
       # This flake is designed for x86_64 Linux systems.
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
+      # Explicitly use the 'nixpkgs' input (which points to unstable)
+      # for all packages in this flake to ensure consistency.
+      unstablePkgs = import nixpkgs { inherit system; };
     in
     {
       # The devShell provides the compiler, tools, and environment variables.
-      devShells.${system}.default = pkgs.mkShell {
+      devShells.${system}.default = unstablePkgs.mkShell {
+        # Force the environment to use Clang as the default C/C++ compiler.
+        # This is crucial because we are using Clang-specific flags like -flto=thin.
+        stdenv = unstablePkgs.clangStdenv;
         # A message to show when entering the shell.
         shellHook = ''
           export MAKEFLAGS="-j$(nproc)"
           echo "C/C++ HPC Build Environment Ready."
           echo "Compiler flags are set for native architecture optimizations (AVX, etc.)."
-          echo "MAKEFLAGS are set for parallel builds: $MAKEFLAGS"
-          echo "For CMake, use: cmake --build . --parallel"
+          echo "MAKEFLAGS are set for parallel 'make' builds: $MAKEFLAGS"
+          echo "For CMake, first run 'cmake .. [options]' to configure."
+          echo "Then run 'cmake --build . --parallel' to build."
         '';
 
         # List of packages to make available in the shell.
-        packages = with pkgs; [
+        packages = with unstablePkgs; [
           # Modern compiler toolchain. Clang is often preferred for its diagnostics
           # and performance, especially with LTO.
           llvmPackages_latest.clang
