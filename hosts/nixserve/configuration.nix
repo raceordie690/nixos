@@ -6,7 +6,6 @@
 {
   imports = [
     (../../modules/amdgpu.nix)
-    ../../modules/rocm.nix
     ../../modules/roles/headless-rocm.nix
   ];
 
@@ -20,8 +19,6 @@
 
   # Enable the base AMD GPU drivers (from amdgpu.nix).
   drivers.amdgpu.enable = true;
-  # Enable the ROCm compute stack specifically for this host (from rocm.nix).
-  drivers.rocm.enable = true;
 
   nix.settings = {
     max-jobs = "auto";

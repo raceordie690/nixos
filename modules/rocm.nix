@@ -13,9 +13,14 @@
     };
 
     config = lib.mkIf cfg.enable {
-      # This high-level option correctly configures the necessary packages and kernel modules
-      # for ROCm OpenCL support.
-      hardware.amdgpu.opencl.enable = true;
+      # Use the standard hardware.opengl instead of hardware.amdgpu.hip
+      hardware.opengl = {
+        enable = true;
+        extraPackages = with pkgs; [
+          rocmPackages.clr.icd
+          rocmPackages.rocm-runtime
+        ];
+      };
 
       # Create a linked path /opt/rocm for ROCm libraries. Some applications
       # may have this path hardcoded.
@@ -26,7 +31,15 @@
             paths = with pkgs.rocmPackages; [ rocblas hipblas clr ];
           };
         in
-        [ "L+    /opt/rocm   -    -    -     -    ${rocmEnv}" ];
+        [
+          "L+    /opt/rocm   -    -    -     -    ${rocmEnv}"
+          "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
+        ];
+
+      services.udev.extraRules = ''
+        KERNEL=="kfd", GROUP="render", MODE="0664"
+        KERNEL=="renderD*", GROUP="render", MODE="0664"
+      '';
 
       # Add ROCm-specific tools to the system path from the unstable channel.
       environment.systemPackages = with pkgs; [

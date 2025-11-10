@@ -7,7 +7,6 @@
   imports = [
     (../../modules/amdgpu.nix)
     ../../modules/rocm.nix
-    ../../modules/rocm-overlay.nix
   ];
 
   # optimizations for AI Max+ 395 LLM usage

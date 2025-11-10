@@ -39,6 +39,10 @@
           # and performance, especially with LTO.
           llvmPackages_latest.clang
           llvmPackages_latest.lld
+          # Add LLVM's binary tools (ar, ranlib, etc.). This is CRUCIAL for
+          # correctly handling static libraries (.a files) when using Link-Time
+          # Optimization (LTO), preventing the "archive has no index" error.
+          llvmPackages_latest.bintools
 
           # Essential build tools for C/C++ projects.
           cmake
@@ -59,29 +63,29 @@
           openblas
         ];
 
-        # Environment variables to configure the build.
-        # NIX_CFLAGS_COMPILE is the standard way to pass flags in a Nix shell.
+        # NIX_CFLAGS_COMPILE is the standard way to pass flags for compilation steps.
         NIX_CFLAGS_COMPILE = [
           # -O3: Enable aggressive optimizations for performance.
           "-O3"
-
           # -march=native: The key optimization. This tells the compiler to detect the
           # host CPU (e.g., Zen 3, Zen 4) and enable all available instruction sets,
           # including AVX, AVX2, and AVX512.
           "-march=native"
-
           # -flto=thin: Enable Thin Link-Time Optimization. This performs optimizations
           # across the entire program at link time, improving inlining and performance,
           # with a better compile time cost than full LTO.
           "-flto=thin"
+          # -pipe: Use pipes instead of temporary files for compilation stages.
+          "-pipe"
+        ];
 
+        # NIX_LDFLAGS is used to pass flags specifically to the linker.
+        # This avoids the "argument unused during compilation" warning.
+        NIX_LDFLAGS = [
           # Force the use of the LLD linker from the LLVM toolchain. This ensures
           # compatibility with Clang and LTO, preventing errors like "archive has
           # no index".
           "-fuse-ld=lld"
-
-          # -pipe: Use pipes instead of temporary files for compilation stages.
-          "-pipe"
         ];
       };
     };

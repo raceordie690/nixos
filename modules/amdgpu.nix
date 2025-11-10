@@ -17,16 +17,13 @@ in
     # which is crucial for features like Plymouth boot screens and stable display output.
     boot.initrd.kernelModules = [ "amdgpu" ];
     # Blacklist the older 'radeon' driver to prevent conflicts with 'amdgpu'.
-    boot.blacklistedKernelModules = [ "radeon" ];
+    boot.blacklistedKernelModules = [ "radeon" ]; # This is now handled by nixos-hardware
 
     # Core graphics packages and 32-bit support for gaming (e.g., Steam via Proton).
-    hardware.graphics = {
+    hardware.opengl = {
       enable = true;
-      enable32Bit = true;
-      # The mesa drivers are essential. vulkan-tools provides useful utilities
-      # for verifying your Vulkan installation (e.g., `vulkaninfo`).
+      driSupport = true;
       extraPackages = with pkgs; [
-        mesa
         vulkan-tools
         libva # Video Acceleration API
       ];
@@ -46,7 +43,10 @@ in
     # with your current Wayland setup but are good to have for a complete module
     # in case you switch to an X11 session later.
     services.xserver = lib.mkIf config.services.xserver.enable {
-      enableTearFree = true;
+      # The generic `enableTearFree` option was removed. This is the modern
+      # equivalent for the `amdgpu` driver to prevent screen tearing in X11.
+      # It requires `videoDrivers` to be set to `[ "amdgpu" ]`.
+      videoDrivers = [ "amdgpu" ];
     };
 
     environment.systemPackages = with pkgs; [ clinfo ];

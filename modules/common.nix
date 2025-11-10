@@ -1,6 +1,9 @@
 { config, lib, pkgs, ... }:
 let
   user = "robert";
+  # Define the path to your secrets file.
+  # This makes it easy to reference and ensures consistency.
+  secretsFile = ../../secrets.yaml;
 in
 {
 
@@ -20,8 +23,8 @@ in
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-  hardware.enableRedistributableFirmware = true;
+  hardware.firmware.enableRedistributable = true;
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.firmware.enableRedistributable;
   # Podman is optional unless you’ll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
   
@@ -33,6 +36,31 @@ in
     # Increase the download buffer to 64 MiB to handle larger files.
     # The value is in bytes. 64 * 1024 * 1024 = 67108864
     download-buffer-size = 67108864;
+    # Allow the Nix daemon to access the SSH agent socket of the 'robert' user.
+    # This is necessary for fetching from private Git repositories over SSH during builds.
+    # The path is dynamically determined based on the user's runtime directory.
+    extra-sandbox-paths = [
+      "=/run/user/1000/keyring/ssh"
+    ];
+  };
+
+  # === SOPS (Secrets Management) ===
+
+  # Set the default path for the main secrets file.
+  sops.defaultSopsFile = secretsFile;
+
+  # Define the SSH private key secret.
+  # This will decrypt the specified key from secrets.yaml and place it
+  # in the correct location with secure permissions.
+  sops.secrets.ssh_private_key = {
+    # The file will be owned by the 'robert' user and 'users' group.
+    owner = user;
+    group = "users";
+    # The path where the decrypted secret will be placed.
+    path = "/home/${user}/.ssh/id_ed25519";
+    # Set file permissions to 600 (read/write for owner only).
+    # This is critical for SSH private keys.
+    mode = "0600";
   };
 
 
@@ -160,6 +188,13 @@ in
   users.users.${user} = {
     isNormalUser = true;
     initialPassword = "pwd";
+
+    # Enable the user-level ssh-agent service. This ensures that an SSH agent
+    # is running for the 'robert' user, which is required for the Nix daemon
+    # to use their SSH keys for fetching private sources.
+    useDefaultShell = true;
+
+
     extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" ];
     packages = with pkgs; [ ];
     openssh.authorizedKeys.keys = [
@@ -170,6 +205,11 @@ in
     enable = true;
     enableSSHSupport = true;
   };
+
+  # Disable the standard ssh-agent. We are using gpg-agent with SSH support instead,
+  # as enabled by `programs.gnupg.agent.enableSSHSupport = true;` above.
+  programs.ssh.startAgent = false;
+
 
   # OVMF files for libvirt
   environment.etc."ovmf/edk2-x86_64-secure-code.fd".source =
