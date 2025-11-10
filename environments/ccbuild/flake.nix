@@ -24,6 +24,8 @@
         # A message to show when entering the shell.
         shellHook = ''
           export MAKEFLAGS="-j$(nproc)"
+          export CC="clang"
+          export CXX="clang++"
           echo "C/C++ HPC Build Environment Ready."
           echo "Compiler flags are set for native architecture optimizations (AVX, etc.)."
           echo "MAKEFLAGS are set for parallel 'make' builds: $MAKEFLAGS"
@@ -42,6 +44,7 @@
           cmake
           gnumake
           pkg-config
+          curl # For downloading models and data
           coreutils # Provides 'nproc' for parallel job counting
 
           # ROCm SDK for GPU programming with HIP. This is what llama.cpp uses
@@ -71,6 +74,11 @@
           # across the entire program at link time, improving inlining and performance,
           # with a better compile time cost than full LTO.
           "-flto=thin"
+
+          # Force the use of the LLD linker from the LLVM toolchain. This ensures
+          # compatibility with Clang and LTO, preventing errors like "archive has
+          # no index".
+          "-fuse-ld=lld"
 
           # -pipe: Use pipes instead of temporary files for compilation stages.
           "-pipe"

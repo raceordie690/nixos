@@ -272,6 +272,7 @@ in
 
     # Apps
     mpv
+    curl
 
     kitty
     gtk3
