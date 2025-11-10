@@ -18,9 +18,10 @@
       devShells.${system}.default = pkgs.mkShell {
         # A message to show when entering the shell.
         shellHook = ''
+          export MAKEFLAGS="-j$(nproc)"
           echo "C/C++ HPC Build Environment Ready."
           echo "Compiler flags are set for native architecture optimizations (AVX, etc.)."
-          echo "MAKEFLAGS are set for parallel builds (make -j$(nproc))."
+          echo "MAKEFLAGS are set for parallel builds: $MAKEFLAGS"
           echo "For CMake, use: cmake --build . --parallel"
         '';
 
@@ -39,7 +40,7 @@
 
           # ROCm SDK for GPU programming with HIP. This is what llama.cpp uses
           # for AMD GPU acceleration.
-          rocmPackages.hip-sdk
+          rocmPackages.hipcc
 
           # ROCm tools for monitoring the GPU.
           rocmPackages.rocm-smi
@@ -48,11 +49,6 @@
           # A high-performance BLAS library that llama.cpp can leverage.
           openblas
         ];
-
-        # Set MAKEFLAGS to enable parallel builds by default for make-based projects.
-        # It uses the number of available processor cores.
-        # We use toString because the value must be a string.
-        MAKEFLAGS = "-j${toString pkgs.config.NIX_BUILD_CORES}";
 
         # Environment variables to configure the build.
         # NIX_CFLAGS_COMPILE is the standard way to pass flags in a Nix shell.
