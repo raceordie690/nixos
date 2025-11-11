@@ -64,12 +64,13 @@
       htop
     ]; # Add other nixserve-specific packages here
 
-  # Enable Wake-on-LAN for ethernet devices.
-  # This udev rule automatically enables the 'magic packet' setting on any device
-  # identified as an ethernet card (ATTR{type}=="1").
-  services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="net", ATTR{type}=="1", RUN+="${pkgs.ethtool}/bin/ethtool -s %k wol g"
-  '';
+  # Merge udev rules from multiple modules.
+  # The rules from headless-rocm.nix are included here, along with a new one
+  # to enable Wake-on-LAN for ethernet devices.
+  services.udev.extraRules = lib.mkMerge [
+    (lib.mkBefore ''ACTION=="add", SUBSYSTEM=="net", ATTR{type}=="1", RUN+="${pkgs.ethtool}/bin/ethtool -s %k wol g"'')
+  ];
+
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #

@@ -27,9 +27,9 @@
 
  
 
-  # Power key behavior
+  # Power management - correct option name
   services.logind.extraConfig = ''
-    HandlePowerKey = "sleep";
+    HandlePowerKey=sleep
   '';
 
   # This option defines the first version of NixOS you have installed on this particular machine,

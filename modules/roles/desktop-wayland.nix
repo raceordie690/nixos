@@ -133,11 +133,10 @@ in
     # System utilities for Wayland
     unstablePkgs.wlr-randr
     adwaita-icon-theme
-    qt6ct
+    qt6Packages.qt6ct
     
     # SDDM theming
-    libsForQt5.breeze-qt5
-    libsForQt5.breeze-icons
+    libsForQt5.breeze-qt5 # Provides the Breeze theme for Qt5 apps
 
     # Deploy custom assets to the system profile
     custom-assets

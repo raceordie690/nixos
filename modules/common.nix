@@ -1,9 +1,6 @@
 { config, lib, pkgs, ... }:
 let
   user = "robert";
-  # Define the path to your secrets file.
-  # This makes it easy to reference and ensures consistency.
-  secretsFile = ../../secrets.yaml;
 in
 {
 
@@ -22,9 +19,12 @@ in
     plymouth.enable = true;
   };
 
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.firmware.enableRedistributable = true;
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.firmware.enableRedistributable;
+  # Use the recommended setting for firmware. This includes most common firmware
+  # (including Realtek rtw88) without pulling in everything, which can cause
+  # breakages when packages are removed from nixpkgs.
+  hardware.enableRedistributableFirmware = true;
   # Podman is optional unless you’ll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
   
@@ -32,35 +32,13 @@ in
   nix.settings = {
     # Ensure flakes are enabled.
     experimental-features = [ "nix-command" "flakes" ];
+    # Add 'robert' to trusted-users to allow user-level flake evaluation and builds.
+    #trusted-users = [ "root" user ];
     allowed-users = [ "@wheel" ];
+    sandbox = true;
     # Increase the download buffer to 64 MiB to handle larger files.
     # The value is in bytes. 64 * 1024 * 1024 = 67108864
     download-buffer-size = 67108864;
-    # Allow the Nix daemon to access the SSH agent socket of the 'robert' user.
-    # This is necessary for fetching from private Git repositories over SSH during builds.
-    # The path is dynamically determined based on the user's runtime directory.
-    extra-sandbox-paths = [
-      "=/run/user/1000/keyring/ssh"
-    ];
-  };
-
-  # === SOPS (Secrets Management) ===
-
-  # Set the default path for the main secrets file.
-  sops.defaultSopsFile = secretsFile;
-
-  # Define the SSH private key secret.
-  # This will decrypt the specified key from secrets.yaml and place it
-  # in the correct location with secure permissions.
-  sops.secrets.ssh_private_key = {
-    # The file will be owned by the 'robert' user and 'users' group.
-    owner = user;
-    group = "users";
-    # The path where the decrypted secret will be placed.
-    path = "/home/${user}/.ssh/id_ed25519";
-    # Set file permissions to 600 (read/write for owner only).
-    # This is critical for SSH private keys.
-    mode = "0600";
   };
 
 
@@ -79,8 +57,8 @@ in
         powersave = false;  # Disable WiFi power saving for better performance
         backend = "wpa_supplicant";
       };
-      # Enable connection sharing
-      enableStrongSwan = true;
+      # Add plugins to NetworkManager.
+      plugins = [  ];
       
       # Force specific DNS servers and ignore auto-DNS from DHCP/IPv6 RA
       dns = "none";  # Disable NetworkManager's DNS management
@@ -106,6 +84,12 @@ in
       addresses = true;
       workstation = true;
     };
+    # This is the key to resolving single-label hostnames (e.g., "nixserve")
+    # without needing to append ".local". It configures nss-mdns to handle them.
+    extraConfig = ''
+      [server]
+      domain-name=.local
+    '';
   };
 
 
@@ -192,7 +176,7 @@ in
     # Enable the user-level ssh-agent service. This ensures that an SSH agent
     # is running for the 'robert' user, which is required for the Nix daemon
     # to use their SSH keys for fetching private sources.
-    useDefaultShell = true;
+    #useDefaultShell = true;
 
 
     extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" ];
@@ -201,15 +185,10 @@ in
       "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGOvoX3deODoSn/brDTWYmLAgLVpCJC5fuKvWXNj+oVFYt3fA9S3B8ZAs8H867tJhAbRz3FunMYJ+vPG1WqcTk0lgBY2whugExPd6WxhrTb3NVVW2Z+t6W3B5pE0nw6BL0zk+9vimIp3y0d8PBADU/5jeYz+7HodzdEol75EnX1btXeGg== robert@nixboss"
     ];
   };
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
-
-  # Disable the standard ssh-agent. We are using gpg-agent with SSH support instead,
-  # as enabled by `programs.gnupg.agent.enableSSHSupport = true;` above.
-  programs.ssh.startAgent = false;
-
+  # The GPG agent with SSH support should be managed by home-manager for the user,
+  # not at the system level. This prevents sudo/root from trying to access the
+  # user's agent socket during builds.
+  # programs.ssh.startAgent should also be managed by home-manager.
 
   # OVMF files for libvirt
   environment.etc."ovmf/edk2-x86_64-secure-code.fd".source =
@@ -276,10 +255,7 @@ in
     neofetch
     btop
     stow
-    libva-utils # For checking hardware acceleration status with `vainfo`
-    gnome-keyring
-    sops 
-    age
+    libva-utils  # For checking hardware acceleration status with `vainfo`
     via 
     swtpm
     xsettingsd
@@ -297,17 +273,16 @@ in
     blueman
     fontpreview 
     gcolor3
-    gparted
+    gparted # Note: requires a graphical session to run
     pavucontrol
-    qt6.qmake
+    qt6.qtbase # Provides qmake
     ranger
     scrot
-    vim_configurable
-    wireplumber
+    vim-full
+    wireplumber # This is already enabled as a service via pipewire
     wl-color-picker
     xdg-utils
     mbuffer
-    libsecret
     vlc
 
     # Apps
@@ -334,7 +309,8 @@ in
 
   ];
 
-  # Fonts
+
+  # 25.05 (or later) Fonts
   fonts = {
     fontconfig.enable = true;
     fontDir.enable = true;
@@ -349,7 +325,7 @@ in
       nerd-fonts.jetbrains-mono
       nerd-fonts.symbols-only
       noto-fonts
-      noto-fonts-emoji
+      noto-fonts-color-emoji
     ];
   };
   # Virtualization stack unique to this host
@@ -359,9 +335,7 @@ in
     onShutdown = "suspend";
     onBoot = "ignore";
     qemu = {
-      package = pkgs.qemu_kvm;
-      ovmf.enable = true;
-      ovmf.packages = [ pkgs.OVMFFull.fd ];
+      package = pkgs.qemu_kvm; # Use the KVM-enabled QEMU package.
       swtpm.enable = true;
       runAsRoot = false;
     };
