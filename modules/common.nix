@@ -250,6 +250,7 @@ in
 
   # Core packages shared by all hosts
   environment.systemPackages = with pkgs; [
+    home-manager
     toolbox # Tool for containerized command line environments on Linux
     neovim
     neofetch
