@@ -41,15 +41,11 @@
       };
 
     "/efi" = 
-      { device = "/dev/disk/by-uuid/8ABD-4347";
+      { device = "/dev/disk/by-uuid/96a8b89f-0c2b-4cc5-828d-613d243ee696";
         fsType = "vfat";
         options = [ "fmask=0077" "dmask=0077" ];
       };
       
-    "/nix" =
-      { device = "rpool/nix";
-        fsType = "zfs";
-      };
 
     "/data" =
       { device = "rpool/data";
@@ -73,9 +69,11 @@
   };
 
   swapDevices = [
-	{ device = "/dev/disk/by-uuid/1cc2eaa6-e42e-433a-84c8-38aeab5889b3"; }
-	{ device = "/dev/disk/by-uuid/8d5018e9-6c0e-4590-9ee5-7f808908b4eb"; }
+    { device = "/dev/disk/by-partuuid/df6b205b-82f5-48d9-8876-b132b6e0f383"; }
+    { device = "/dev/disk/by-partuuid/64446512-5ea8-475e-9bff-4bb490472289"; }
+    { device = "/dev/disk/by-partuuid/fbaacb93-f630-42ae-927c-43b297902427"; }
   ];
-  networking.hostId = "8425e349";  
+  networking.hostId = "029ab953";
+  boot.zfs.forceImportRoot = true;  
 
 }
