@@ -1,29 +1,22 @@
-# /home/robert/nixos/modules/installer.nix
-#
-# This module configures a bootable NixOS ISO installer.
-{ pkgs, ... }:
+# This module configures a bootable ISO image for installation.
+# It uses the nixpkgs input passed via specialArgs in flake.nix to remain pure.
+{ config, pkgs, lib, nixpkgs, ... }:
 
 {
   imports = [
-    # This is the base configuration for a minimal NixOS installation ISO.
-    <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix>
+    # Use the explicit path from the nixpkgs flake input instead of an impure lookup.
+    "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
   ];
 
-  # Set a name for the generated ISO file.
-  isoImage.isoName = "nixos-custom-installer.iso";
+  # Enable flakes and nix-command in the installer environment.
+  nix.extraOptions = ''
+    experimental-features = nix-command flakes
+  '';
 
-  # CRITICAL: Enable flakes for the live environment. This allows you to
-  # run `nixos-install --flake ...` from the installer.
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # Since your systems are ZFS-based, include ZFS support in the installer.
+  # Enable ZFS tools in the installer.
   boot.supportedFilesystems = [ "zfs" ];
+  networking.hostId = "00000000"; # Required for ZFS on boot.
 
-  # Add essential packages to the live environment for installation.
-  environment.systemPackages = with pkgs; [
-    git      # To clone your configuration repository
-    neovim   # Your preferred editor
-    gparted  # For disk partitioning
-    zfs      # ZFS user-space tools for pool creation/management
-  ];
+  # Add useful tools to the installer environment.
+  environment.systemPackages = with pkgs; [ git vim zfs ];
 }

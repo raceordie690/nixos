@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";  # Always latest stable
+    #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";  # Always latest stable
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     home-manager.url = "github:nix-community/home-manager";    
@@ -44,11 +45,29 @@
           inherit pkgs; # Use the provided or default 'pkgs'.
           specialArgs = {
             inherit hostname;
+            # Pass the nixpkgs flake input to modules.
+            inherit nixpkgs;
             # Pass the unstable package set to modules that need it.
             inherit unstablePkgs;
           };
           modules = modules;
         };
+
+      # A simplified helper for the installer ISO.
+      # This version does NOT apply the unstable-overlay, which prevents a
+      # mismatch between the unstable ZFS package and the stable kernel
+      # used by the installer base image.
+      mkInstallerHost = { hostname, system ? "x86_64-linux", modules ? [ ] }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            inherit hostname;
+            # Pass the nixpkgs flake input to modules.
+            inherit nixpkgs;
+          };
+          modules = modules;
+        };
+
     in {
       nixosConfigurations = {
         nixboss = mkHost {
@@ -115,8 +134,8 @@
         };
 
       # A special configuration to build a bootable ISO installer.
-      installer = mkHost {
-        hostname = "installer"; # A dummy hostname for the build
+      installer = mkInstallerHost {
+        hostname = "installer"; # A dummy hostname for the build.
         modules = [
           # This module contains all the ISO-specific settings.
           ./modules/installer.nix

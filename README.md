@@ -33,7 +33,7 @@ This flake includes a configuration for a custom installer ISO. This is necessar
 1.  **Build the ISO:**
     From the root of this repository, run:
     ```bash
-    nix build .#installer.config.system.build.isoImage
+    nix build .#nixosConfigurations.installer.config.system.build.isoImage
     ```
 
 2.  **Locate the ISO:**

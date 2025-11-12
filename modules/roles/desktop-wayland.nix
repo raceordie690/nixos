@@ -136,7 +136,7 @@ in
     qt6Packages.qt6ct
     
     # SDDM theming
-    libsForQt5.breeze-qt5 # Provides the Breeze theme for Qt5 apps
+    kdePackages.breeze # Provides the Breeze theme for Qt5/Qt6 apps
 
     # Deploy custom assets to the system profile
     custom-assets
