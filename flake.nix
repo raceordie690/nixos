@@ -15,29 +15,37 @@
       # Define package sets for each system architecture.
       # This overlay adds packages from nixpkgs-unstable into the stable package set.
       # It's a clean way to mix stable and unstable.
-      unstable-overlay = final: prev: {
-        unstable = import nixpkgs-unstable {
-          system = prev.system;
-          config.allowUnfree = true;
+      unstable-overlay = final: prev:
+        let
+          # Import unstable pkgs once to avoid duplication and for clarity.
+          unstablePkgs = import nixpkgs-unstable {
+            system = prev.system;
+            config.allowUnfree = true;
+          };
+        in {
+          # Overlay rocmPackages from unstable.
+          rocmPackages = unstablePkgs.rocmPackages;
+          # Use ZFS from unstable for newer features and bug fixes.
+          zfs = unstablePkgs.zfs;
         };
-        # Specifically overlay rocmPackages from unstable onto the main package set.
-        rocmPackages = (import nixpkgs-unstable {
-          system = prev.system;
-          config.allowUnfree = true;
-        }).rocmPackages;
-      };
 
       # Helper function to build a NixOS host configuration.
       # All hosts will now use the stable 'nixpkgs' by default, with the
       # 'unstable-overlay' applied to provide access to unstable packages.
       mkHost = { hostname, system ? "x86_64-linux", modules ? [ ] }:
-        let pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ unstable-overlay ]; }; in
+        let
+          # Import unstable pkgs once to pass to modules via specialArgs.
+          unstablePkgs = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
+          # Create the final pkgs set with the stable+unstable overlay.
+          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ unstable-overlay ]; };
+        in
         nixpkgs.lib.nixosSystem {
           inherit system;
           inherit pkgs; # Use the provided or default 'pkgs'.
           specialArgs = {
             inherit hostname;
-            unstablePkgs = pkgs.unstable;            
+            # Pass the unstable package set to modules that need it.
+            inherit unstablePkgs;
           };
           modules = modules;
         };
@@ -105,6 +113,16 @@
             ./hosts/nixserve/configuration.nix
           ];
         };
+
+      # A special configuration to build a bootable ISO installer.
+      installer = mkHost {
+        hostname = "installer"; # A dummy hostname for the build
+        modules = [
+          # This module contains all the ISO-specific settings.
+          ./modules/installer.nix
+        ];
+      };
+
       # Add future machines like:
       # atlas = mkHost {
       #   hostname = "atlas";

@@ -74,6 +74,5 @@
     { device = "/dev/disk/by-partuuid/fbaacb93-f630-42ae-927c-43b297902427"; }
   ];
   networking.hostId = "029ab953";
-  boot.zfs.forceImportRoot = true;  
 
 }
