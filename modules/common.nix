@@ -37,8 +37,8 @@ in
     allowed-users = [ "@wheel" ];
     sandbox = true;
     # Increase the download buffer to 64 MiB to handle larger files.
-    # The value is in bytes. 64 * 1024 * 1024 = 67108864
-    download-buffer-size = 67108864;
+    # The value is in bytes. 96 * 1024 * 1024 = 100,663,296
+    download-buffer-size = 100663296;
   };
 
 
