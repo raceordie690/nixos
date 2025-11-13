@@ -11,6 +11,7 @@
   networking.hostName = "nixbeast";
   boot = {
     loader.efi.efiSysMountPoint = "/efi";
+    initrd.supportedFilesystems = [ "zfs" ];
     initrd.availableKernelModules = [ "nvme" "xhci_pci" "amdgpu" "thunderbolt" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
     initrd.kernelModules = [ ];
     kernelModules = [ "kvm-amd" ];
@@ -36,7 +37,7 @@
 
   fileSystems = {
     "/" =
-      { device = "rpool/ROOT/nixbeast";
+      { device = "rpool/nixbeast";
         fsType = "zfs";
       };
 
