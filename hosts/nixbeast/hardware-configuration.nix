@@ -41,11 +41,16 @@
       };
 
     "/efi" = 
-      { device = "/dev/disk/by-uuid/96a8b89f-0c2b-4cc5-828d-613d243ee696";
+      { device = "/dev/disk/by-uuid/afee2a35-efef-4eeb-ba66-eef96ae64912";
         fsType = "vfat";
         options = [ "fmask=0077" "dmask=0077" ];
       };
       
+    "/efi2" = 
+      { device = "/dev/disk/by-uuid/96a8b89f-0c2b-4cc5-828d-613d243ee696";
+        fsType = "vfat";
+        options = [ "fmask=0077" "dmask=0077" ];
+      };
 
     "/data" =
       { device = "rpool/data";
@@ -54,6 +59,11 @@
 
     "/home" =
       { device = "rpool/home";
+        fsType = "zfs";
+      };
+
+    "/tmp" =
+      { device = "rpool/tmp";
         fsType = "zfs";
       };
 
@@ -78,6 +88,6 @@
     { device = "/dev/disk/by-partuuid/64446512-5ea8-475e-9bff-4bb490472289"; }
     { device = "/dev/disk/by-partuuid/fbaacb93-f630-42ae-927c-43b297902427"; }
   ];
-  networking.hostId = "029ab953";
+  networking.hostId = "8425e349";
 
 }
