@@ -28,8 +28,8 @@
   };
   # Use a specific kernel version for this host.
   # The unstable kernel is aliased to `pkgs.linuxPackages_latest`
-  boot.kernelPackages = pkgs.linuxPackages_6_17;
-
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
+  networking.hostId = "4f3a9d6b"; # Required for ZFS on boot.
    # Use the systemd-boot EFI boot loader.
   boot.loader = {
     systemd-boot.enable = true;

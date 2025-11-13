@@ -15,7 +15,7 @@
 
   # Enable ZFS tools in the installer.
   boot.supportedFilesystems = [ "zfs" ];
-  networking.hostId = "00000000"; # Required for ZFS on boot.
+  #networking.hostId = "00000000"; # Required for ZFS on boot.
 
   # Add useful tools to the installer environment.
   environment.systemPackages = with pkgs; [ git vim zfs ];
