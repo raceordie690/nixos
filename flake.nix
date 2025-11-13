@@ -7,8 +7,8 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     home-manager.url = "github:nix-community/home-manager";    
-    # Point home-manager to stable nixpkgs for consistency
-    home-manager.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # Point home-manager to the same nixpkgs as the system for consistency.
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }:
@@ -26,8 +26,6 @@
         in {
           # Overlay rocmPackages from unstable.
           rocmPackages = unstablePkgs.rocmPackages;
-          # Use ZFS from unstable for newer features and bug fixes.
-          zfs = unstablePkgs.zfs;
         };
 
       # Helper function to build a NixOS host configuration.
