@@ -8,87 +8,79 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  networking.hostName = "nixbeast";
   boot = {
-    loader.efi.efiSysMountPoint = "/efi";
-    initrd.supportedFilesystems = [ "zfs" ];
+    # Btrfs on LVM or other block devices requires the "btrfs" filesystem
+    # to be supported in the initrd.
+    initrd.supportedFilesystems = [ "btrfs" ];
     initrd.availableKernelModules = [ "nvme" "xhci_pci" "amdgpu" "thunderbolt" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
     initrd.kernelModules = [ ];
     kernelModules = [ "kvm-amd" ];
     extraModulePackages = [  ];
-    supportedFilesystems = [ "zfs" ];
-    zfs.forceImportRoot = true;
-    # Tell initrd how to mount the root dataset
-    #loader.systemd-boot.extraInstallCommands = ''
-    #  set -euxo pipefail
-    #  export PATH=${pkgs.coreutils}/bin:${pkgs.util-linux}/bin:${pkgs.rsync}/bin:$PATH
-#
-      # Mount secondary EFI partition
-#      mkdir -p /mnt/efibackup
-#      mount /dev/nvme1n1p1 /mnt/efibackup
-#
-      # Mirror contents
-#      rsync -a --delete /boot/efi /mnt/efibackup/
-#
-#      umount /mnt/efibackup
-#    '';
+    # Set the primary ESP mount point, which is required as it's not the default.
+    loader.efi.efiSysMountPoint = "/efi";
+
+    # This is the legacy way to ensure multi-device Btrfs arrays are
+    # assembled in the initrd. It explicitly waits for both devices to appear.
+    # This is more compatible with older NixOS installers.
+    initrd.preLVMCommands = ''
+      wait-for-file /dev/disk/by-partuuid/30be395c-ef39-43d9-bc97-122e53f29dcc
+      wait-for-file /dev/disk/by-partuuid/35567007-09f3-492d-860b-dcc61b974bc8
+    '';
   };
-
-
+ 
+  networking.hostName = "nixbeast";
   fileSystems = {
-    "/" =
-      { device = "rpool/nixbeast";
-        fsType = "zfs";
-      };
+    "/" = {
+      # Using the Btrfs filesystem UUID is the most robust method.
+      device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d";
+      fsType = "btrfs";
+      options = [ "subvol=@" "compress=zstd" "ssd" "space_cache=v2" "noatime" ];
+    };
+ 
+    "/home" = {
+      device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d";
+      fsType = "btrfs";
+      options = [ "subvol=@home" "compress=zstd" "ssd" "space_cache=v2" "noatime" ];
+    };
+ 
+    "/nix" = {
+      device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d";
+      fsType = "btrfs";
+      options = [ "subvol=@nix" "compress=zstd" "ssd" "space_cache=v2" "noatime" ];
+    };
+ 
+    "/var" = { device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d"; fsType = "btrfs"; options = [ "subvol=@var" "compress=zstd" "ssd" "space_cache=v2" "noatime" ]; };
+ 
+    # Using tmpfs for /tmp is generally recommended for performance and to avoid unnecessary writes.
+    "/tmp" = { device = "tmpfs"; fsType = "tmpfs"; options = [ "defaults" "mode=1777" "size=32G" ]; };
+ 
+    "/data" = { device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d"; fsType = "btrfs"; options = [ "subvol=@data" "nodatacow" "ssd" "space_cache=v2" "noatime" ]; };
+ 
+    "/vm" = {
+      device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d";
+      fsType = "btrfs";
+      # 'nodatacow' is critical for VM disk image performance.
+      options = [ "subvol=@vm" "nodatacow" "ssd" "space_cache=v2" "noatime" ];
+    };
+ 
+    "/efi" = {
+      device = "/dev/disk/by-partuuid/96a8b89f-0c2b-4cc5-828d-613d243ee696";
+      fsType = "vfat";
+      options = [ "fmask=0077" "dmask=0077" ];
+    };
+ 
+    "/efi2" = {
+      device = "/dev/disk/by-partuuid/afee2a35-efef-4eeb-ba66-eef96ae64912";
+      fsType = "vfat";
+      options = [ "noauto" "fmask=0077" "dmask=0077" ];
+    };
 
-    "/efi" = 
-      { device = "/dev/nvme0n1p1";
-        fsType = "vfat";
-        options = [ "fmask=0077" "dmask=0077" ];
-      };
-      
-    "/efi2" = 
-      { device = "/dev/nvme1n1p1";
-        fsType = "vfat";
-        options = [ "fmask=0077" "dmask=0077" ];
-      };
-
-    "/data" =
-      { device = "rpool/data";
-        fsType = "zfs";
-      };
-
-    "/home" =
-      { device = "rpool/home";
-        fsType = "zfs";
-      };
-
-    "/tmp" =
-      { device = "rpool/tmp";
-        fsType = "zfs";
-      };
-
-    "/var" =
-      { device = "rpool/var";
-        fsType = "zfs";
-      };
-
-    "/nix" =
-      { device = "rpool/nix";
-        fsType = "zfs";
-      };
-
-    "/vm" =
-      { device = "rpool/vm";
-        fsType = "zfs";
-      };
   };
 
+  # Using PARTUUIDs is a stable way to identify swap partitions.
   swapDevices = [
-    { device = "/dev/disk/by-uuid/ee6a7768-0532-49b9-af34-e867420b1dd1"; }
-    { device = "/dev/disk/by-uuid/f327473d-d950-4db3-9bae-f2b68f3285fd"; }
-    { device = "/dev/disk/by-uuid/7e1bbc7a-c35e-4439-8272-23065f677b79"; }
+    { device = "/dev/disk/by-partuuid/df6b205b-82f5-48d9-8876-b132b6e0f383"; }
+    { device = "/dev/disk/by-partuuid/64446512-5ea8-475e-9bff-4bb490472289"; }
   ];
-  networking.hostId = "8425e349";
 
 }

@@ -48,6 +48,8 @@ in
   i18n.defaultLocale = "en_US.UTF-8";
 
 
+
+
   # Networking with WiFi support
   networking = {
     useDHCP = lib.mkDefault true;
@@ -91,7 +93,6 @@ in
       domain-name=.local
     '';
   };
-
 
   # Firmware/udev
   services.fwupd.enable = true;
@@ -152,7 +153,7 @@ in
     browsing = true;
     defaultShared = true;
   };
-  services.dbus.enable = true;
+
   services.gvfs.enable = true;
   services.envfs.enable = true;
 
@@ -179,12 +180,20 @@ in
     #useDefaultShell = true;
 
 
-    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" ];
+    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" ];
     packages = with pkgs; [ ];
     openssh.authorizedKeys.keys = [
       "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGOvoX3deODoSn/brDTWYmLAgLVpCJC5fuKvWXNj+oVFYt3fA9S3B8ZAs8H867tJhAbRz3FunMYJ+vPG1WqcTk0lgBY2whugExPd6WxhrTb3NVVW2Z+t6W3B5pE0nw6BL0zk+9vimIp3y0d8PBADU/5jeYz+7HodzdEol75EnX1btXeGg== robert@nixboss"
     ];
   };
+
+  users.users.nm-openconnect = {
+    group = "nm-openconnect";
+    isSystemUser = true;
+  };
+  users.groups.nm-openconnect = {};
+  users.groups.netdev = {};
+
   # The GPG agent with SSH support should be managed by home-manager for the user,
   # not at the system level. This prevents sudo/root from trying to access the
   # user's agent socket during builds.
@@ -248,8 +257,15 @@ in
 
   };
 
+  # 1. Enable the daemon system-wide (This replaces the Home Manager service)
+  services.gnome.gnome-keyring.enable = true;
+
+  # 2. UNLOCK the keyring on login (The critical missing piece)
+  security.pam.services.login.enableGnomeKeyring = true;
+
   # Core packages shared by all hosts
   environment.systemPackages = with pkgs; [
+    gnome-keyring
     home-manager
     toolbox # Tool for containerized command line environments on Linux
     neovim

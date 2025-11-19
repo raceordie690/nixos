@@ -81,34 +81,44 @@ in
     # System-level configuration only enables the program and sets up portals
   };
 
+
+xdg.portal = {
+  enable = true;
+  extraPortals = [
+    unstablePkgs.xdg-desktop-portal-hyprland
+    pkgs.xdg-desktop-portal-gtk
+  ];
+  # no `config = { ... };` for now
+};
+
   # Portals: hyprland backend for Hyprland
-  xdg.portal = {
-    enable = true;
+#  xdg.portal = {
+#    enable = true;
     # xdg-desktop-portal will automatically choose the correct backend (hyprland)
     # based on the running session.
-    extraPortals = [
-      unstablePkgs.xdg-desktop-portal-hyprland
-      pkgs.xdg-desktop-portal-gtk
-    ];
+#    extraPortals = [
+#      unstablePkgs.xdg-desktop-portal-hyprland
+#      pkgs.xdg-desktop-portal-gtk
+#    ];
     # Explicitly configure which portal handles which interface
-    config = {
-      common = {
-        default = [
-          "gtk"
-        ];
-      };
-      hyprland = {
-        default = [
-          "hyprland"
-          "gtk"
-        ];
+ #   config = {
+ #     common = {
+ #       default = [
+ #         "gtk"
+ #       ];
+ #     };
+ #     hyprland = {
+ #       default = [
+ #         "hyprland"
+ #         "gtk"
+ #       ];
         # Ensure settings interface is handled by GTK portal
-        "org.freedesktop.impl.portal.Settings" = [
-          "gtk"
-        ];
-      };
-    };
-  };
+ #       "org.freedesktop.impl.portal.Settings" = [
+  #        "gtk"
+  #      ];
+  #    };
+  #  };
+  #};
 
   # Wayland-friendly environment. Avoid forcing X11 platforms.
   environment.variables = {
