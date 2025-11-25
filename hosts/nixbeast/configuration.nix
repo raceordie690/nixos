@@ -27,9 +27,25 @@
     max-jobs = "auto";
     cores = 32;
   };
+
+
+  
+  # Enable Docker daemon
+  virtualisation.docker.enable = true;
+
+  # Ensure the 'docker' group exists (usually created automatically by the module,
+  # but this is explicit and works even if you don't rely on the module)
+  users.groups.docker = { };
+
+  # Your user must be in the 'docker' group
+  users.users.robert = {
+    extraGroups = [ "docker" ];
+  };
+      
   # Use a specific kernel version for this host.
   # The unstable kernel is aliased to `pkgs.linuxPackages_latest`
-  boot.kernelPackages = pkgs.linuxPackages_6_17;
+  boot.kernelPackages = pkgs.linuxPackagesFor pkgs.linux_zen;
+  #boot.kernelPackages = pkgs.linuxPackages_zen;
    # Use the systemd-boot EFI boot loader.
   boot.loader = {
     systemd-boot.enable = true;

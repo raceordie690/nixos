@@ -24,6 +24,13 @@
         ];
       };
 
+      # Add an overlay to build llama-cpp with ROCm support.
+      nixpkgs.overlays = [
+        (final: prev: {
+          llama-cpp = prev.llama-cpp.override { rocmSupport = true; };
+        })
+      ];
+
       # Create a symlink for applications that expect HIP to be at /opt/rocm/hip
       systemd.tmpfiles.rules = [
         "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.hipcc}"
@@ -35,10 +42,11 @@
         KERNEL=="renderD*", GROUP="render", MODE="0664"
       '';
 
-      # Add ROCm-specific tools to the system path.
+      # Add ROCm-specific tools and llama-cpp to the system path.
       environment.systemPackages = with pkgs; [
         rocmPackages.rocminfo
         rocmPackages.rocm-smi
+        llama-cpp # This will now be the ROCm-enabled version
       ];
     };
   }
