@@ -86,7 +86,7 @@ in {
       Users = {
         MaximumUid = 60000;
         MinimumUid = 1000;
-        HideUsers = "";
+        HideUsers = "nixbld";
         HideShells = "/bin/false,/usr/bin/nologin,/sbin/nologin";
       };
     };
