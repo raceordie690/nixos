@@ -23,7 +23,7 @@ in
     hardware.graphics = {
       enable = true;
       extraPackages = with pkgs; [
-        amdvlk
+        # amdvlk # deprecated in 25.11
         vulkan-tools
         libva # Video Acceleration API
       ];

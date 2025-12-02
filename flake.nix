@@ -2,7 +2,7 @@
   description = "My NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";  # Always latest stable
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";  # Always latest stable
     #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";  # Always latest stable
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
@@ -20,7 +20,7 @@
         let
           # Import unstable pkgs once to avoid duplication and for clarity.
           unstablePkgs = import nixpkgs-unstable {
-            system = prev.system;
+            system = prev.stdenv.hostPlatform.system;
             config.allowUnfree = true;
           };
         in {

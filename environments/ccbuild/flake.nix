@@ -10,7 +10,7 @@
   outputs = { self, nixpkgs }:
     let
       # This flake is designed for x86_64 Linux systems.
-      system = "x86_64-linux";  # Fix: pkgs doesn't exist
+      stdenv.hostPlatform.system = "x86_64-linux";  # Fix: pkgs doesn't exist
       # Explicitly use the 'nixpkgs' input (which points to unstable)
       # for all packages in this flake to ensure consistency.
       unstablePkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
