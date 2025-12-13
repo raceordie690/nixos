@@ -28,15 +28,28 @@
           rocmPackages = unstablePkgs.rocmPackages;
         };
 
+      # Overlay to fix Strix Halo page faults (MES 0x83 regression)
+      firmware-overlay = final: prev: {
+        linux-firmware = prev.linux-firmware.overrideAttrs (old: {
+          preInstall = (old.preInstall or "") + ''
+             cp ${final.fetchurl {
+               url = "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/amdgpu/gc_11_5_1_mes_2.bin?id=c092c7487eb7c3d58697f490ff605bc38f4cc947";
+               sha256 = "02isjq7ijbi15cgssakx1sp3pym587c365i2zi1pcyyq30n861wf";
+               name = "gc_11_5_1_mes_2.bin";
+             }} amdgpu/gc_11_5_1_mes_2.bin
+          '';
+        });
+      };
+
       # Helper function to build a NixOS host configuration.
       # All hosts will now use the stable 'nixpkgs' by default, with the
       # 'unstable-overlay' applied to provide access to unstable packages.
-      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ] }:
+      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ], extraOverlays ? [] }:
         let
           # Import unstable pkgs once to pass to modules via specialArgs.
           unstablePkgs = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
           # Create the final pkgs set with the stable+unstable overlay.
-          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ unstable-overlay ]; };
+          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ unstable-overlay ] ++ extraOverlays; };
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
@@ -94,6 +107,7 @@
 
         nixbeast = mkHost {
           hostname = "nixbeast";
+          extraOverlays = [ firmware-overlay ];
           modules = [
             # Hardware
             nixos-hardware.nixosModules.common-cpu-amd
