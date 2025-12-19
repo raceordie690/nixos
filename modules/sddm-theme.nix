@@ -70,6 +70,10 @@ in {
   services.displayManager.sddm = {
     enable = true;
     theme = "sddm-custom-theme";
+    extraPackages = with pkgs; [
+      qt6.qtdeclarative
+      qt6.qt5compat  # Qt5Compat.GraphicalEffects for blur on Qt6-based SDDM
+    ];
     settings = {
       Theme = {
         Current = "sddm-custom-theme";
@@ -84,7 +88,7 @@ in {
         Numlock = "none";
       };
       Users = {
-        MaximumUid = 60000;
+        MaximumUid = 29999;  # keep nixbld* (uid >= 30000) out of the greeter
         MinimumUid = 1000;
         HideUsers = "nixbld";
         HideShells = "/bin/false,/usr/bin/nologin,/sbin/nologin";
