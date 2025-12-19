@@ -23,13 +23,18 @@
   drivers.rocm.enable = true;
 
  
-  nix.settings = {
-    max-jobs = "auto";
-    cores = 32;
+  nix = {
+    settings = {
+      max-jobs = "auto";
+      cores = 0;
+    };
+
+    gc = {
+      dates = [ "weekly" ];
+      automatic = true;
+    };
   };
 
-
-  
   # Enable Docker daemon
   virtualisation.docker.enable = true;
 

@@ -1,9 +1,16 @@
 { config, pkgs, ... }:
 {
 
-  nix.settings = {
-    max-jobs = "auto";
-    cores = 16;
+  nix = {
+    settings = {
+      max-jobs = "auto";
+      cores = 0;
+    };
+
+    garbageCollection = {
+      automatic = true;
+      dates = [ "weekly" ];
+    };
   };
 
 

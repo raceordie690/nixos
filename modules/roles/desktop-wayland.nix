@@ -33,6 +33,10 @@ in
         DisplayServer = "wayland";
         GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.3333,QT_AUTO_SCREEN_SCALE_FACTOR=1.3333";
       };
+      Users = {
+        DefaultSession = "hyprland";
+        MinimumUid = 1000;
+      };
     };
   };
 

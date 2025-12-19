@@ -20,9 +20,16 @@
   # Enable the base AMD GPU drivers (from amdgpu.nix).
   drivers.amdgpu.enable = true;
 
-  nix.settings = {
-    max-jobs = "auto";
-    cores = 48;
+  nix = {
+    settings = {
+      max-jobs = "auto";
+      cores = 0;
+    };
+
+    garbageCollection = {
+      automatic = true;
+      dates = [ "weekly" ];
+    };
   };
   # Use a specific kernel version for this host.
   # Use the latest kernel from unstable for maximum hardware support.
