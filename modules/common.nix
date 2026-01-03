@@ -24,6 +24,8 @@ in
   # Use the recommended setting for firmware. This includes most common firmware
   # (including Realtek rtw88) without pulling in everything, which can cause
   # breakages when packages are removed from nixpkgs.
+  hardware.uinput.enable = true;
+
   hardware.enableRedistributableFirmware = true;
   # Podman is optional unless you’ll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
@@ -98,7 +100,9 @@ in
   services.fwupd.enable = true;
   services.udev.extraRules = ''
     KERNEL=="hidraw*", ATTRS{idVendor}=="fffe", ATTRS{idProduct}=="0009", TAG+="uaccess"
+    KERNEL=="uinput", MODE="0660", GROUP="uinput"
   '';
+
 
   # Input
   services.libinput = {
@@ -180,7 +184,8 @@ in
     #useDefaultShell = true;
 
 
-    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" ];
+ 
+    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" "input" "uinput" ];
     packages = with pkgs; [ ];
     openssh.authorizedKeys.keys = [
       "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGOvoX3deODoSn/brDTWYmLAgLVpCJC5fuKvWXNj+oVFYt3fA9S3B8ZAs8H867tJhAbRz3FunMYJ+vPG1WqcTk0lgBY2whugExPd6WxhrTb3NVVW2Z+t6W3B5pE0nw6BL0zk+9vimIp3y0d8PBADU/5jeYz+7HodzdEol75EnX1btXeGg== robert@nixboss"
