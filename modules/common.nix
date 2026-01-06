@@ -350,6 +350,8 @@ in
       noto-fonts-color-emoji
     ];
   };
+
+  
   # Virtualization stack unique to this host
   programs.virt-manager.enable = true;
   virtualisation.libvirtd = {
