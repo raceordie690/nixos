@@ -49,31 +49,38 @@ in
   services.timesyncd.enable = true;
   i18n.defaultLocale = "en_US.UTF-8";
 
-
-
+  # DNS-over-TLS with Cloudflare
+  services.resolved = {
+    enable = true;
+    dnssec = "true";
+    domains = [ "~." ];
+    fallbackDns = [ "1.0.0.1" "2606:4700:4700::1001" ];
+    extraConfig = ''
+      DNS=1.1.1.1#cloudflare-dns.com 2606:4700:4700::1111#cloudflare-dns.com
+      DNSOverTLS=yes
+    '';
+  };
 
   # Networking with WiFi support
   networking = {
     useDHCP = lib.mkDefault true;
     networkmanager = {
       enable = true;
+      dns = "systemd-resolved";
       wifi = {
         powersave = false;  # Disable WiFi power saving for better performance
         backend = "wpa_supplicant";
       };
-      # Add plugins to NetworkManager.
-      plugins = [  ];
-      
-      # Force specific DNS servers and ignore auto-DNS from DHCP/IPv6 RA
-      dns = "none";  # Disable NetworkManager's DNS management
+      plugins = [ ];
     };
     
-    # Manually set DNS servers and search domains
-    nameservers = [ "192.168.1.254" ];
-    search = [ "attlocal.net" "lan" ];
+    # Cloudflare secure DNS servers
+    nameservers = [ "1.1.1.1" "1.0.0.1" ];
+    search = [ ];
     
     firewall.enable = false;
   };
+  
   # Enable wireless regulatory domain for WiFi
   hardware.wirelessRegulatoryDatabase = true;
 
