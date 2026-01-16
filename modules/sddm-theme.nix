@@ -69,7 +69,6 @@ in {
   # Configure SDDM to use our custom theme
   services.displayManager.sddm = {
     enable = true;
-    theme = "sddm-custom-theme";
     extraPackages = with pkgs; [
       qt6.qtdeclarative
       qt6.qt5compat  # Qt5Compat.GraphicalEffects for blur on Qt6-based SDDM

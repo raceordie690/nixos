@@ -40,6 +40,10 @@ in
     };
   };
 
+  systemd.services.sddm.serviceConfig = {
+    Environment = "DRI_PRIME=1";
+  };
+
   # Use the dedicated module for xsettingsd for better integration.
   # This replaces the manual systemd service and environment.etc file.
   #programs.xsettingsd = {
@@ -131,7 +135,7 @@ xdg.portal = {
     #QT_QPA_PLATFORM = "wayland";
     QT_QPA_PLATFORM = "wayland;xcb";
     # This is likely a typo for WLR_DRM_DEVICES, used by wlroots-based compositors.
-    WLR_DRM_DEVICES = "/dev/dri/card1:/dev/dri/card0";
+    #WLR_DRM_DEVICES = "/dev/dri/card1:/dev/dri/card0";
     GDK_SCALE = "1.3333";
 
     XDG_SESSION_TYPE = "wayland";
@@ -148,6 +152,13 @@ xdg.portal = {
     unstablePkgs.wlr-randr
     adwaita-icon-theme
     qt6Packages.qt6ct
+
+    # A lightweight Wayland notification daemon.
+    # This is added to provide a working notification service, as the logs
+    # indicate that `dunst` is failing to start, which can cause the
+    # entire login session to fail. `dunst` appears to be misconfigured
+    # for Wayland in your user configuration.
+    mako
     
     # SDDM theming
     kdePackages.breeze # Provides the Breeze theme for Qt5/Qt6 apps

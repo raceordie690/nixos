@@ -206,6 +206,8 @@ in
   users.groups.nm-openconnect = {};
   users.groups.netdev = {};
 
+  users.users.sddm.extraGroups = [ "video" "render" ];
+
   # The GPG agent with SSH support should be managed by home-manager for the user,
   # not at the system level. This prevents sudo/root from trying to access the
   # user's agent socket during builds.
