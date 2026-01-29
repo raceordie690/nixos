@@ -41,13 +41,18 @@
         });
       };
 
-      # Overlay to skip failing tests in Test2Harness during optimized builds.
-      # This is often needed when architecture optimizations trigger timing-sensitive tests.
-      perl-fix-overlay = final: prev: {
+      # Overlays to fix issues during architecture-optimized builds.
+      optimization-fix-overlay = final: prev: {
+        # Skip failing tests in Test2Harness.
         perlPackages = prev.perlPackages.overrideScope (pself: pprev: {
           Test2Harness = pprev.Test2Harness.overrideAttrs (old: {
             doCheck = false;
           });
+        });
+
+        # Fix Internal Compiler Error (ICE) in re2c by forcing generic architecture.
+        re2c = prev.re2c.overrideAttrs (old: {
+          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
         });
       };
 
@@ -67,12 +72,13 @@
           unstablePkgs = import nixpkgs-unstable {
             localSystem = hostPlatform;
             config.allowUnfree = true;
+            overlays = [ optimization-fix-overlay ];
           };
           # Create the final pkgs set with the stable+unstable overlay.
           pkgs = import nixpkgs {
             localSystem = hostPlatform;
             config.allowUnfree = true;
-            overlays = [ unstable-overlay perl-fix-overlay ] ++ extraOverlays;
+            overlays = [ unstable-overlay optimization-fix-overlay ] ++ extraOverlays;
           };
         in
         nixpkgs.lib.nixosSystem {
