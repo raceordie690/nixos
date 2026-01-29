@@ -27,6 +27,7 @@
     settings = {
       max-jobs = "auto";
       cores = 0;
+      system-features = [ "gccarch-znver2" "benchmark" "big-parallel" "kvm" "nixos-test" ];
     };
 
     gc = {

@@ -6,6 +6,7 @@
     settings = {
       max-jobs = "auto";
       cores = 0;
+      system-features = [ "gccarch-znver4" "benchmark" "big-parallel" "kvm" "nixos-test" ];
     };
 
     gc = {
@@ -18,6 +19,7 @@
   boot.kernelParams = [
     "splash"
     "amd_iommu=off"
+    "amd_pstate=active"
   ];
 
   # Enable the comprehensive AMD GPU configuration from our new module.
@@ -26,7 +28,7 @@
   networking.hostName = "nixboss";
   networking.hostId = "e7a6ede7";
 
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
+  boot.kernelPackages = pkgs.linuxPackagesFor pkgs.linux_zen;
 
   boot.loader = {
     systemd-boot.enable = true;

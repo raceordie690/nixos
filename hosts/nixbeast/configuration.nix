@@ -16,6 +16,7 @@
     "amd_iommu=off"
     "amdgpu.gttsize=131072"
     "ttm.pages_limit=33554432"
+    "amd_pstate=active"
   ];
 
   # Enable the base AMD GPU drivers (from amdgpu.nix).
@@ -28,6 +29,7 @@
     settings = {
       max-jobs = "auto";
       cores = 0;
+      system-features = [ "gccarch-znver5" "benchmark" "big-parallel" "kvm" "nixos-test" ];
     };
 
     gc = {
