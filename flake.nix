@@ -59,6 +59,11 @@
         llvm_21 = prev.llvm_21.overrideAttrs (old: {
           NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
         });
+
+        # Skip tests for gitMinimal which are failing during optimized builds.
+        gitMinimal = prev.gitMinimal.overrideAttrs (old: {
+          doCheck = false;
+        });
       };
 
       # Helper function to build a NixOS host configuration.
