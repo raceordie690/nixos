@@ -54,6 +54,11 @@
         re2c = prev.re2c.overrideAttrs (old: {
           NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
         });
+
+        # Fix LLVM 21 crash/OOM by forcing generic architecture.
+        llvm_21 = prev.llvm_21.overrideAttrs (old: {
+          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+        });
       };
 
       # Helper function to build a NixOS host configuration.
