@@ -4,6 +4,7 @@
 { config, lib, pkgs, unstablePkgs, ... }:
 
 {
+
   imports = [
     (../../modules/amdgpu.nix)
     ../../modules/rocm.nix
@@ -22,7 +23,7 @@
   # Enable the ROCm compute stack specifically for this host (from rocm.nix).
   drivers.rocm.enable = true;
 
- 
+
   nix = {
     settings = {
       max-jobs = "auto";
@@ -46,7 +47,7 @@
   users.users.robert = {
     extraGroups = [ "docker" ];
   };
-      
+
   # Use a specific kernel version for this host.
   # The unstable kernel is aliased to `pkgs.linuxPackages_latest`
   boot.kernelPackages = pkgs.linuxPackagesFor pkgs.linux_zen;

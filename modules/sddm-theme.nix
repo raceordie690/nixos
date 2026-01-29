@@ -24,29 +24,29 @@ let
   # Create a script to copy wallpapers to /usr/share/sddm-wallpapers
   wallpaper-setup = pkgs.writeShellScriptBin "setup-sddm-wallpapers" ''
     set -euo pipefail
-    
+
     # Create the dedicated SDDM wallpapers directory
     mkdir -p /usr/share/sddm-wallpapers
-    
+
     # Clear any existing wallpapers first
     rm -f /usr/share/sddm-wallpapers/*
-    
+
     # Copy ONLY your custom wallpapers
     if [ -d "${custom-assets}/share/wallpapers" ]; then
       echo "Copying custom wallpapers to SDDM directory..."
       cp -f "${custom-assets}/share/wallpapers/"* /usr/share/sddm-wallpapers/ 2>/dev/null || true
     fi
-    
+
     # Create a simple fallback wallpaper if none exist
     if [ ! "$(ls -A /usr/share/sddm-wallpapers 2>/dev/null)" ]; then
       echo "Creating fallback wallpaper..."
       ${pkgs.imagemagick}/bin/convert -size 1920x1080 gradient:#1e1e2e-#313244 /usr/share/sddm-wallpapers/default.jpg
     fi
-    
+
     # Set proper permissions
     chmod 755 /usr/share/sddm-wallpapers
     chmod 644 /usr/share/sddm-wallpapers/* 2>/dev/null || true
-    
+
     echo "SDDM wallpapers setup complete. Contents of /usr/share/sddm-wallpapers:"
     ls -la /usr/share/sddm-wallpapers/ || true
   '';
@@ -65,6 +65,10 @@ in {
     qt6.qt5compat  # For Qt5 compatibility in Qt6
     imagemagick  # For creating fallback wallpapers
   ];
+
+  users.users.sddm = {
+    extraGroups = [ "video" "render" ];
+  };
 
   # Configure SDDM to use our custom theme
   services.displayManager.sddm = {
@@ -111,26 +115,26 @@ in {
   system.activationScripts.sddm-wallpapers = lib.mkAfter ''
     echo "Setting up dedicated SDDM wallpapers directory..."
     mkdir -p /usr/share/sddm-wallpapers
-    
+
     # Clear any existing wallpapers first
     rm -f /usr/share/sddm-wallpapers/*
-    
+
     # Copy ONLY your custom wallpapers
     if [ -d "${custom-assets}/share/wallpapers" ]; then
       echo "Copying your custom wallpapers..."
       cp -f "${custom-assets}/share/wallpapers/"* /usr/share/sddm-wallpapers/ 2>/dev/null || true
     fi
-    
+
     # Create a simple fallback if no custom wallpapers exist
     if [ ! "$(ls -A /usr/share/sddm-wallpapers 2>/dev/null)" ]; then
       echo "Creating fallback wallpaper..."
       ${pkgs.imagemagick}/bin/convert -size 1920x1080 gradient:#1e1e2e-#313244 /usr/share/sddm-wallpapers/default.jpg || true
     fi
-    
+
     # Set permissions
     chmod 755 /usr/share/sddm-wallpapers || true
     chmod 644 /usr/share/sddm-wallpapers/* 2>/dev/null || true
-    
+
     echo "SDDM wallpapers setup complete. Available wallpapers:"
     ls -la /usr/share/sddm-wallpapers/ 2>/dev/null || true
   '';

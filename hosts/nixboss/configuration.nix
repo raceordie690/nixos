@@ -1,13 +1,14 @@
 { config, pkgs, ... }:
 {
 
+
   nix = {
     settings = {
       max-jobs = "auto";
       cores = 0;
     };
 
-    garbageCollection = {
+    gc = {
       automatic = true;
       dates = [ "weekly" ];
     };
@@ -18,7 +19,7 @@
     "splash"
     "amd_iommu=off"
   ];
-  
+
   # Enable the comprehensive AMD GPU configuration from our new module.
   drivers.amdgpu.enable = true;
 
@@ -32,7 +33,7 @@
     efi.canTouchEfiVariables = true;
   };
 
- 
+
 
   # Power management - correct option name
   services.logind.extraConfig = ''

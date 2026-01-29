@@ -29,7 +29,7 @@ in
   hardware.enableRedistributableFirmware = true;
   # Podman is optional unless you’ll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
-  
+
   # Add settings for the Nix daemon here.
   nix.settings = {
     # Ensure flakes are enabled.
@@ -73,14 +73,14 @@ in
       };
       plugins = [ ];
     };
-    
+
     # Cloudflare secure DNS servers
     nameservers = [ "1.1.1.1" "1.0.0.1" ];
     search = [ ];
-    
+
     firewall.enable = false;
   };
-  
+
   # Enable wireless regulatory domain for WiFi
   hardware.wirelessRegulatoryDatabase = true;
 
@@ -191,7 +191,7 @@ in
     #useDefaultShell = true;
 
 
- 
+
     extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" "input" "uinput" ];
     packages = with pkgs; [ ];
     openssh.authorizedKeys.keys = [
@@ -206,7 +206,7 @@ in
   users.groups.nm-openconnect = {};
   users.groups.netdev = {};
 
-  users.users.sddm.extraGroups = [ "video" "render" ];
+
 
   # The GPG agent with SSH support should be managed by home-manager for the user,
   # not at the system level. This prevents sudo/root from trying to access the
@@ -287,22 +287,22 @@ in
     btop
     stow
     libva-utils  # For checking hardware acceleration status with `vainfo`
-    via 
+    via
     swtpm
     xsettingsd
-    htop 
-    git 
-    wget 
-    ripgrep 
-    unzip 
-    tldr 
-    trash-cli 
-    zoxide 
-    glibc 
-    gnumake 
+    htop
+    git
+    wget
+    ripgrep
+    unzip
+    tldr
+    trash-cli
+    zoxide
+    glibc
+    gnumake
     pkg-config
     blueman
-    fontpreview 
+    fontpreview
     gcolor3
     gparted # Note: requires a graphical session to run
     pavucontrol
@@ -326,7 +326,7 @@ in
     figlet
     networkmanagerapplet
     gtklock
-    
+
     # Additional WiFi and networking tools
     iwgtk              # Lightweight WiFi GUI
     wpa_supplicant_gui # WPA Supplicant GUI
@@ -360,7 +360,7 @@ in
     ];
   };
 
-  
+
   # Virtualization stack unique to this host
   programs.virt-manager.enable = true;
   virtualisation.libvirtd = {

@@ -6,7 +6,7 @@
     #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";  # Always latest stable
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
-    home-manager.url = "github:nix-community/home-manager";    
+    home-manager.url = "github:nix-community/home-manager";
     # Point home-manager to the same nixpkgs as the system for consistency.
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -44,12 +44,26 @@
       # Helper function to build a NixOS host configuration.
       # All hosts will now use the stable 'nixpkgs' by default, with the
       # 'unstable-overlay' applied to provide access to unstable packages.
-      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ], extraOverlays ? [] }:
+      mkHost = { hostname, system ? "x86_64-linux", gccArch ? null, modules ? [ ], extraOverlays ? [] }:
         let
+          # Define the host platform with optional GCC tuning.
+          hostPlatform = if gccArch == null then { inherit system; } else {
+            inherit system;
+            gcc.arch = gccArch;
+            gcc.tune = gccArch;
+          };
+
           # Import unstable pkgs once to pass to modules via specialArgs.
-          unstablePkgs = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
+          unstablePkgs = import nixpkgs-unstable {
+            localSystem = hostPlatform;
+            config.allowUnfree = true;
+          };
           # Create the final pkgs set with the stable+unstable overlay.
-          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ unstable-overlay ] ++ extraOverlays; };
+          pkgs = import nixpkgs {
+            localSystem = hostPlatform;
+            config.allowUnfree = true;
+            overlays = [ unstable-overlay ] ++ extraOverlays;
+          };
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
@@ -83,6 +97,7 @@
       nixosConfigurations = {
         nixboss = mkHost {
           hostname = "nixboss";
+          gccArch = "znver4";
           modules = [
             # Hardware (generic AMD + specific IGPU module you used)
             nixos-hardware.nixosModules.common-cpu-amd
@@ -91,13 +106,13 @@
             "${nixos-hardware}/common/cpu/amd/raphael/igpu.nix"
             ./modules/amdgpu.nix
 
-            # Shared config and roles            
+            # Shared config and roles
             ./modules/common.nix
             ./modules/zfs-common.nix
             #./modules/roles/desktop-x11-qtile.nix
             # Switch to Wayland Qtile role
             ./modules/roles/desktop-wayland.nix
-            ./modules/sddm-theme.nix  
+            ./modules/sddm-theme.nix
 
             # Host-specific config
             ./hosts/nixboss/hardware-configuration.nix
@@ -107,6 +122,7 @@
 
         nixbeast = mkHost {
           hostname = "nixbeast";
+          gccArch = "znver5";
           extraOverlays = [ firmware-overlay ];
           modules = [
             # Hardware
@@ -115,11 +131,11 @@
             nixos-hardware.nixosModules.common-gpu-amd
             ./modules/amdgpu.nix
 
-            # Shared config and roles            
+            # Shared config and roles
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
-            ./modules/sddm-theme.nix  
+            ./modules/sddm-theme.nix
 
             # Host-specific config
             ./hosts/nixbeast/hardware-configuration.nix
@@ -129,12 +145,13 @@
 
         nixserve = mkHost {
           hostname = "nixserve";
+          gccArch = "znver2";
           modules = [
             # Hardware (assuming AMD CPU)
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
 
-            # Shared config and roles            
+            # Shared config and roles
             ./modules/common.nix
             ./modules/zfs-common.nix # Assuming the server also uses ZFS
             ./modules/roles/headless-rocm.nix
@@ -187,7 +204,7 @@
             echo
             echo "Use 'rebuild <hostname> <action>' to manage your systems."
             echo "Example: rebuild nixboss switch"
-            
+
             rebuild() {
               nixos-rebuild "$2" --flake ".#$1" --use-remote-sudo
             }

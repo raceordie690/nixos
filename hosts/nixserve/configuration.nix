@@ -4,6 +4,8 @@
 { config, lib, pkgs, unstablePkgs, ... }:
 
 {
+
+
   imports = [
     (../../modules/amdgpu.nix)
     ../../modules/roles/headless-rocm.nix
@@ -15,6 +17,7 @@
     "amdgpu.gttsize=131072"
     "transparent_hugepage=always"
     "ttm.pages_limit=33554432"
+    "amd_pstate=active"
   ];
 
   # Enable the base AMD GPU drivers (from amdgpu.nix).
@@ -26,7 +29,7 @@
       cores = 0;
     };
 
-    garbageCollection = {
+    gc = {
       automatic = true;
       dates = [ "weekly" ];
     };
@@ -37,8 +40,7 @@
   #boot.zfs.package = pkgs.zfsUnstable;   # or: pkgs.zfsUnstable
 
   # Always use the newest Linux kernel that this ZFS can build against
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
-
+  boot.kernelPackages = pkgs.linuxPackagesFor pkgs.linux_zen;
    # Use the systemd-boot EFI boot loader.
   boot.loader = {
     systemd-boot.enable = true;
@@ -66,7 +68,7 @@
   # You can use https://search.nixos.org/ to find more packages (and options).
   # GPU-related tools are now managed by the amdgpu.nix module.
   environment.systemPackages = with pkgs;
-    [ 
+    [
       lm_sensors # For monitoring CPU temperatures
       htop
     ]; # Add other nixserve-specific packages here
