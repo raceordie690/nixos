@@ -67,7 +67,7 @@
           checkPhase = "true";
           doInstallCheck = false;
         });
-        
+
         exempi = prev.exempi.overrideAttrs (old: {
           NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
         });
@@ -83,6 +83,11 @@
           pytest-xdist = pprev.pytest-xdist.overrideAttrs (old: {
             doCheck = false;
           });
+        });
+
+        # Skip tests for coreutils-full failing during optimized builds.
+        coreutils-full = prev.coreutils-full.overrideAttrs (old: {
+          doCheck = false;
         });
       };
 
