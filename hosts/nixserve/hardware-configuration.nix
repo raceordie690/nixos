@@ -11,9 +11,9 @@
   networking.hostName = "nixserve";
   boot = {
     loader.efi.efiSysMountPoint = "/efi";
-    initrd.availableKernelModules = [ "nvme" "xhci_pci" "amdgpu"  "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
+    initrd.availableKernelModules = [ "ahci" "xhci_pci"  "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
     initrd.kernelModules = [ ];
-    kernelModules = [ "kvm-amd" ];
+    kernelModules = [ "amdgpu" "kvm-amd"  "nvme"];
     extraModulePackages = [  ];
     supportedFilesystems = [ "zfs" ];
     zfs.forceImportRoot = true;
@@ -40,12 +40,12 @@
         fsType = "zfs";
       };
 
-    "/efi" = 
+    "/efi" =
       { device = "/dev/disk/by-partuuid/cfa5d431-4f85-49ef-acd0-995e31af4f80";
         fsType = "vfat";
         options = [ "fmask=0077" "dmask=0077" ];
       };
-      
+
     "/nix" =
       { device = "rpool/nix";
         fsType = "zfs";
@@ -82,6 +82,6 @@
     { device = "/dev/disk/by-partuuid/9f782b49-bcdf-4731-bb91-b8d5cede0943"; }
     { device = "/dev/disk/by-partuuid/f826cfa5-e46e-4dce-a84e-03489f7b05ad"; }
   ];
-  networking.hostId = "2b189654";  
+  networking.hostId = "2b189654";
 
 }

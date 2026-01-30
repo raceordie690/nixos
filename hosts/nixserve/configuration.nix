@@ -11,13 +11,13 @@
     ../../modules/roles/headless-rocm.nix
   ];
 
-  # optimizations for AI Max+ 395 LLM usage
+  # Optimizations for Zen 2 (Threadripper 3000) and AI/LLM usage
   boot.kernelParams = [
     "amd_iommu=off"
     "amdgpu.gttsize=131072"
     "transparent_hugepage=always"
     "ttm.pages_limit=33554432"
-    "amd_pstate=active"
+    "amd_pstate=passive"
   ];
 
   # Enable the base AMD GPU drivers (from amdgpu.nix).

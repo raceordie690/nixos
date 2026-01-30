@@ -10,13 +10,15 @@
     ../../modules/rocm.nix
   ];
 
-  # optimizations for AI Max+ 395 LLM usage
+  # Optimizations for Zen 5 (Ryzen AI Max+ 395) and AI/LLM usage
   boot.kernelParams = [
     "splash"
     "amd_iommu=off"
     "amdgpu.gttsize=131072"
     "ttm.pages_limit=33554432"
     "amd_pstate=active"
+    "amd_pstate_prefcore=1"
+    "transparent_hugepage=always"
   ];
 
   # Enable the base AMD GPU drivers (from amdgpu.nix).

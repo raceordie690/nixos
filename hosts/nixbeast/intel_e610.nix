@@ -126,9 +126,5 @@ let
   };
 in
 {
-  config.boot = {
-    extraModulePackages = [ ixgbeVendor ];
-    initrd.kernelModules = [  "ixgbe" ];
-    blacklistedKernelModules = [ "ixgbe" ];
-  };
+
 }

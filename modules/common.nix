@@ -17,6 +17,8 @@ in
 
     # plymouth, showing after LUKS unlock
     plymouth.enable = true;
+
+    kernelModules = [ "crc32c_intel" "crc32_pclmul" ];
   };
 
 
@@ -27,9 +29,10 @@ in
   hardware.uinput.enable = true;
 
   hardware.enableRedistributableFirmware = true;
+  hardware.cpu.amd.updateMicrocode = true;
   # Podman is optional unless you’ll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
-
+  powerManagement.cpuFreqGovernor = "schedutil";
   # Add settings for the Nix daemon here.
   nix.settings = {
     # Ensure flakes are enabled.

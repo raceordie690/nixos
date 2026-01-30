@@ -9,9 +9,9 @@
     ];
 
   boot = {
-    initrd.availableKernelModules = [ "nvme" "xhci_pci" "thunderbolt" "usbhid" "usb_storage" "sd_mod" ];
+    initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "usbhid" "usb_storage" "sd_mod" ];
     #initrd.kernelModules = [ ];
-    kernelModules = [ "amdgpu" "kvm-amd" ];
+    kernelModules = [ "amdgpu" "kvm-amd" "nvme" ];
     extraModulePackages = [ ];
     kernelParams = [
     #"video=DP-4:3440x1440@60"

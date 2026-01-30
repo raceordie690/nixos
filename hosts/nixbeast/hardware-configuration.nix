@@ -12,9 +12,9 @@
     # Btrfs on LVM or other block devices requires the "btrfs" filesystem
     # to be supported in the initrd.
     initrd.supportedFilesystems = [ "btrfs" ];
-    initrd.availableKernelModules = [ "nvme" "xhci_pci" "amdgpu" "thunderbolt" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
+    initrd.availableKernelModules = [ "xhci_pci"  "thunderbolt" "usbhid" "usb_storage" "sd_mod" "crc32c_generic" "crc32c_intel"  ];
     initrd.kernelModules = [ ];
-    kernelModules = [ "kvm-amd" ];
+    kernelModules = [ "amdgpu" "nvme" "kvm-amd" "btrfs"];
     extraModulePackages = [  ];
     # Set the primary ESP mount point, which is required as it's not the default.
     loader.efi.efiSysMountPoint = "/efi";

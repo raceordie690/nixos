@@ -2,11 +2,10 @@
   description = "My NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";  # Always latest stable
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     home-manager.url = "github:nix-community/home-manager";
-    # Point home-manager to the same nixpkgs as the system for consistency.
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -16,11 +15,13 @@
       # This overlay adds packages from nixpkgs-unstable into the stable package set.
       unstable-overlay = final: prev:
         let
+          # Import unstable pkgs once to avoid duplication and for clarity.
           unstablePkgs = import nixpkgs-unstable {
             system = prev.stdenv.hostPlatform.system;
             config.allowUnfree = true;
           };
         in {
+          # Overlay rocmPackages from unstable.
           rocmPackages = unstablePkgs.rocmPackages;
         };
 
@@ -37,114 +38,17 @@
         });
       };
 
-      # Overlays to fix issues during architecture-optimized builds.
-      optimization-fix-overlay = final: prev:
-        let
-          # Helper function to safely inject CFLAGS without colliding with 'env' attribute
-          # in newer Nixpkgs derivations.
-          safeInjectFlags = old: flags:
-            if (old ? env && old.env ? NIX_CFLAGS_COMPILE) then {
-              env = old.env // {
-                NIX_CFLAGS_COMPILE = old.env.NIX_CFLAGS_COMPILE + " " + flags;
-              };
-            } else if (old ? NIX_CFLAGS_COMPILE) then {
-              NIX_CFLAGS_COMPILE = old.NIX_CFLAGS_COMPILE + " " + flags;
-            } else {
-              NIX_CFLAGS_COMPILE = flags;
-            };
-
-          genericFlags = "-march=x86-64 -mtune=generic";
-        in {
-        # Skip failing tests in Test2Harness.
-        perlPackages = prev.perlPackages.overrideScope (pself: pprev: {
-          Test2Harness = pprev.Test2Harness.overrideAttrs (old: {
-            doCheck = false;
-          });
-        });
-
-        # Fix Internal Compiler Error (ICE) in re2c.
-        re2c = prev.re2c.overrideAttrs (old: safeInjectFlags old genericFlags);
-
-        # Fix LLVM 21 crash/OOM.
-        llvm_21 = prev.llvm_21.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
-          doCheck = false;
-        });
-
-        # Skip tests for git packages which are failing during optimized builds.
-        gitMinimal = prev.gitMinimal.overrideAttrs (old: {
-          doCheck = false;
-          checkPhase = "true";
-          doInstallCheck = false;
-        });
-
-        exempi = prev.exempi.overrideAttrs (old: safeInjectFlags old genericFlags);
-
-        git = prev.git.overrideAttrs (old: {
-          doCheck = false;
-          checkPhase = "true";
-          doInstallCheck = false;
-        });
-
-        # Skip tests for pytest-xdist which are failing during optimized builds.
-        python3Packages = prev.python3Packages.overrideScope (pself: pprev: {
-          pytest-xdist = pprev.pytest-xdist.overrideAttrs (old: {
-            doCheck = false;
-          });
-        });
-
-        # Skip tests for coreutils-full failing during optimized builds.
-        coreutils-full = prev.coreutils-full.overrideAttrs (old: {
-          doCheck = false;
-        });
-
-        # Fix gnupg and systemd Exec format error by forcing generic architecture.
-        gnupg = prev.gnupg.overrideAttrs (old: safeInjectFlags old genericFlags);
-
-        systemd = prev.systemd.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
-          doCheck = false;
-        });
-
-        clang = prev.clang.overrideAttrs (old: safeInjectFlags old genericFlags);
-
-        gsl = prev.gsl.overrideAttrs (old: safeInjectFlags old genericFlags);
-
-        # Fix ROCm LLVM/Clang build failures by forcing generic flags and skipping tests.
-        rocmPackages = prev.rocmPackages.overrideScope (rfinal: rprev: {
-          llvm = rprev.llvm // {
-            clang-unwrapped = rprev.llvm.clang-unwrapped.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
-              doCheck = false;
-            });
-            llvm = rprev.llvm.llvm.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
-              doCheck = false;
-            });
-          };
-        });
-
-        # Skip tests for assimp failing during optimized builds.
-        assimp = prev.assimp.overrideAttrs (old: {
-          doCheck = false;
-        });
-      };
-
       # Helper function to build a NixOS host configuration.
-      mkHost = { hostname, system ? "x86_64-linux", gccArch ? null, modules ? [ ], extraOverlays ? [] }:
+      # Standard mkHost without architecture-specific overrides to ensure binary cache usage.
+      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ], extraOverlays ? [] }:
         let
-          hostPlatform = if gccArch == null then { inherit system; } else {
-            inherit system;
-            gcc.arch = gccArch;
-            gcc.tune = gccArch;
-          };
-
-          unstablePkgs = import nixpkgs-unstable {
-            localSystem = hostPlatform;
-            config.allowUnfree = true;
-            overlays = [ optimization-fix-overlay ];
-          };
-
+          # Import unstable pkgs once to pass to modules via specialArgs.
+          unstablePkgs = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
+          # Create the final pkgs set with the stable+unstable overlay.
           pkgs = import nixpkgs {
-            localSystem = hostPlatform;
+            inherit system;
             config.allowUnfree = true;
-            overlays = [ unstable-overlay optimization-fix-overlay ] ++ extraOverlays;
+            overlays = [ unstable-overlay ] ++ extraOverlays;
           };
         in
         nixpkgs.lib.nixosSystem {
@@ -172,7 +76,6 @@
       nixosConfigurations = {
         nixboss = mkHost {
           hostname = "nixboss";
-          gccArch = "znver4";
           modules = [
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
@@ -190,7 +93,6 @@
 
         nixbeast = mkHost {
           hostname = "nixbeast";
-          gccArch = "znver5";
           extraOverlays = [ firmware-overlay ];
           modules = [
             nixos-hardware.nixosModules.common-cpu-amd
@@ -208,7 +110,6 @@
 
         nixserve = mkHost {
           hostname = "nixserve";
-          gccArch = "znver2";
           modules = [
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
