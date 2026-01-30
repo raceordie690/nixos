@@ -44,9 +44,9 @@ in
   };
 
   # Increase file descriptor limits for large builds
-  systemd.extraConfig = ''
-    DefaultLimitNOFILE=1048576
-  '';
+  systemd.settings.Manager = {
+    DefaultLimitNOFILE = "1048576";
+  };
 
   security.pam.loginLimits = [
     { domain = "*"; type = "-"; item = "nofile"; value = "1048576"; }
