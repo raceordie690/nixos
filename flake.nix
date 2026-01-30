@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";  # Always latest stable
-    #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";  # Always latest stable
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     home-manager.url = "github:nix-community/home-manager";
@@ -15,16 +14,13 @@
     let
       # Define package sets for each system architecture.
       # This overlay adds packages from nixpkgs-unstable into the stable package set.
-      # It's a clean way to mix stable and unstable.
       unstable-overlay = final: prev:
         let
-          # Import unstable pkgs once to avoid duplication and for clarity.
           unstablePkgs = import nixpkgs-unstable {
             system = prev.stdenv.hostPlatform.system;
             config.allowUnfree = true;
           };
         in {
-          # Overlay rocmPackages from unstable.
           rocmPackages = unstablePkgs.rocmPackages;
         };
 
@@ -42,7 +38,23 @@
       };
 
       # Overlays to fix issues during architecture-optimized builds.
-      optimization-fix-overlay = final: prev: {
+      optimization-fix-overlay = final: prev:
+        let
+          # Helper function to safely inject CFLAGS without colliding with 'env' attribute
+          # in newer Nixpkgs derivations.
+          safeInjectFlags = old: flags:
+            if (old ? env && old.env ? NIX_CFLAGS_COMPILE) then {
+              env = old.env // {
+                NIX_CFLAGS_COMPILE = old.env.NIX_CFLAGS_COMPILE + " " + flags;
+              };
+            } else if (old ? NIX_CFLAGS_COMPILE) then {
+              NIX_CFLAGS_COMPILE = old.NIX_CFLAGS_COMPILE + " " + flags;
+            } else {
+              NIX_CFLAGS_COMPILE = flags;
+            };
+
+          genericFlags = "-march=x86-64 -mtune=generic";
+        in {
         # Skip failing tests in Test2Harness.
         perlPackages = prev.perlPackages.overrideScope (pself: pprev: {
           Test2Harness = pprev.Test2Harness.overrideAttrs (old: {
@@ -50,14 +62,11 @@
           });
         });
 
-        # Fix Internal Compiler Error (ICE) in re2c by forcing generic architecture.
-        re2c = prev.re2c.overrideAttrs (old: {
-          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
-        });
+        # Fix Internal Compiler Error (ICE) in re2c.
+        re2c = prev.re2c.overrideAttrs (old: safeInjectFlags old genericFlags);
 
-        # Fix LLVM 21 crash/OOM by forcing generic architecture and skip tests.
-        llvm_21 = prev.llvm_21.overrideAttrs (old: {
-          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+        # Fix LLVM 21 crash/OOM.
+        llvm_21 = prev.llvm_21.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
           doCheck = false;
         });
 
@@ -68,9 +77,7 @@
           doInstallCheck = false;
         });
 
-        exempi = prev.exempi.overrideAttrs (old: {
-          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
-        });
+        exempi = prev.exempi.overrideAttrs (old: safeInjectFlags old genericFlags);
 
         git = prev.git.overrideAttrs (old: {
           doCheck = false;
@@ -91,27 +98,15 @@
         });
 
         # Fix gnupg and systemd Exec format error by forcing generic architecture.
-        # We use env.NIX_CFLAGS_COMPILE to avoid collisions with existing env settings in these packages.
-        gnupg = prev.gnupg.overrideAttrs (old: {
-          env = (old.env or { }) // {
-            NIX_CFLAGS_COMPILE = (old.env.NIX_CFLAGS_COMPILE or (old.NIX_CFLAGS_COMPILE or "")) + " -march=x86-64 -mtune=generic";
-          };
-        });
+        gnupg = prev.gnupg.overrideAttrs (old: safeInjectFlags old genericFlags);
 
-        systemd = prev.systemd.overrideAttrs (old: {
-          env = (old.env or { }) // {
-            NIX_CFLAGS_COMPILE = (old.env.NIX_CFLAGS_COMPILE or (old.NIX_CFLAGS_COMPILE or "")) + " -march=x86-64 -mtune=generic";
-          };
+        systemd = prev.systemd.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
           doCheck = false;
         });
 
-        clang = prev.clang.overrideAttrs (old: {
-          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
-        });
-        
-        gsl = prev.gsl.overrideAttrs (old: {
-          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
-        });
+        clang = prev.clang.overrideAttrs (old: safeInjectFlags old genericFlags);
+
+        gsl = prev.gsl.overrideAttrs (old: safeInjectFlags old genericFlags);
 
         # Skip tests for assimp failing during optimized builds.
         assimp = prev.assimp.overrideAttrs (old: {
@@ -120,24 +115,20 @@
       };
 
       # Helper function to build a NixOS host configuration.
-      # All hosts will now use the stable 'nixpkgs' by default, with the
-      # 'unstable-overlay' applied to provide access to unstable packages.
       mkHost = { hostname, system ? "x86_64-linux", gccArch ? null, modules ? [ ], extraOverlays ? [] }:
         let
-          # Define the host platform with optional GCC tuning.
           hostPlatform = if gccArch == null then { inherit system; } else {
             inherit system;
             gcc.arch = gccArch;
             gcc.tune = gccArch;
           };
 
-          # Import unstable pkgs once to pass to modules via specialArgs.
           unstablePkgs = import nixpkgs-unstable {
             localSystem = hostPlatform;
             config.allowUnfree = true;
             overlays = [ optimization-fix-overlay ];
           };
-          # Create the final pkgs set with the stable+unstable overlay.
+
           pkgs = import nixpkgs {
             localSystem = hostPlatform;
             config.allowUnfree = true;
@@ -146,27 +137,20 @@
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          inherit pkgs; # Use the provided or default 'pkgs'.
+          inherit pkgs;
           specialArgs = {
             inherit hostname;
-            # Pass the nixpkgs flake input to modules.
             inherit nixpkgs;
-            # Pass the unstable package set to modules that need it.
             inherit unstablePkgs;
           };
           modules = modules;
         };
 
-      # A simplified helper for the installer ISO.
-      # This version does NOT apply the unstable-overlay, which prevents a
-      # mismatch between the unstable ZFS package and the stable kernel
-      # used by the installer base image.
       mkInstallerHost = { hostname, system ? "x86_64-linux", modules ? [ ] }:
         nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = {
             inherit hostname;
-            # Pass the nixpkgs flake input to modules.
             inherit nixpkgs;
           };
           modules = modules;
@@ -178,22 +162,15 @@
           hostname = "nixboss";
           gccArch = "znver4";
           modules = [
-            # Hardware (generic AMD + specific IGPU module you used)
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
             "${nixos-hardware}/common/cpu/amd/raphael/igpu.nix"
             ./modules/amdgpu.nix
-
-            # Shared config and roles
             ./modules/common.nix
             ./modules/zfs-common.nix
-            #./modules/roles/desktop-x11-qtile.nix
-            # Switch to Wayland Qtile role
             ./modules/roles/desktop-wayland.nix
             ./modules/sddm-theme.nix
-
-            # Host-specific config
             ./hosts/nixboss/hardware-configuration.nix
             ./hosts/nixboss/configuration.nix
           ];
@@ -204,19 +181,14 @@
           gccArch = "znver5";
           extraOverlays = [ firmware-overlay ];
           modules = [
-            # Hardware
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
             ./modules/amdgpu.nix
-
-            # Shared config and roles
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
             ./modules/sddm-theme.nix
-
-            # Host-specific config
             ./hosts/nixbeast/hardware-configuration.nix
             ./hosts/nixbeast/configuration.nix
           ];
@@ -226,49 +198,22 @@
           hostname = "nixserve";
           gccArch = "znver2";
           modules = [
-            # Hardware (assuming AMD CPU)
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
-
-            # Shared config and roles
             ./modules/common.nix
-            ./modules/zfs-common.nix # Assuming the server also uses ZFS
+            ./modules/zfs-common.nix
             ./modules/roles/headless-rocm.nix
-
-            # Host-specific config
             ./hosts/nixserve/hardware-configuration.nix
             ./hosts/nixserve/configuration.nix
           ];
         };
 
-      # A special configuration to build a bootable ISO installer.
-      installer = mkInstallerHost {
-        hostname = "installer"; # A dummy hostname for the build.
-        modules = [
-          # This module contains all the ISO-specific settings.
-          ./modules/installer.nix
-        ];
+        installer = mkInstallerHost {
+          hostname = "installer";
+          modules = [ ./modules/installer.nix ];
+        };
       };
 
-      # Add future machines like:
-      # atlas = mkHost {
-      #   hostname = "atlas";
-      #   modules = [
-      #     nixos-hardware.nixosModules.common-cpu-amd
-      #     nixos-hardware.nixosModules.common-cpu-amd-pstate
-      #     nixos-hardware.nixosModules.common-gpu-amd
-      #
-      #     ./modules/common.nix
-      #     ./modules/zfs-common.nix
-      #     ./modules/roles/desktop-x11-qtile.nix
-      #
-      #     ./hosts/atlas/hardware-configuration.nix
-      #     ./hosts/atlas/configuration.nix
-      #   ];
-      # };
-      };
-
-      # Add a devShell for convenience
       devShells.x86_64-linux.default =
         let
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
@@ -278,12 +223,6 @@
           nativeBuildInputs = [ pkgs.nixos-rebuild ];
           shellHook = ''
             echo "Welcome to the NixOS configuration shell."
-            echo
-            echo "Available hosts: nixboss, nixbeast, nixserve"
-            echo
-            echo "Use 'rebuild <hostname> <action>' to manage your systems."
-            echo "Example: rebuild nixboss switch"
-
             rebuild() {
               nixos-rebuild "$2" --flake ".#$1" --use-remote-sudo
             }
