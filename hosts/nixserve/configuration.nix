@@ -35,6 +35,10 @@
       dates = [ "weekly" ];
     };
   };
+  
+  
+  # Open necessary TCP ports for remote management or services.
+  networking.firewall.allowedTCPPorts = [ 8089 8088 8087];
   # Use a specific kernel version for this host.
   # Use the latest kernel from unstable for maximum hardware support.
   # Choose which ZFS you want (stable or bleeding-edge)

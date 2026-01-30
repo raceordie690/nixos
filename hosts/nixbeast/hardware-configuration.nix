@@ -12,7 +12,7 @@
     # Btrfs on LVM or other block devices requires the "btrfs" filesystem
     # to be supported in the initrd.
     initrd.supportedFilesystems = [ "btrfs" ];
-    initrd.availableKernelModules = [ "xhci_pci"  "thunderbolt" "usbhid" "usb_storage" "sd_mod" "crc32c_generic" "crc32c_intel"  ];
+    initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "usbhid" "usb_storage" "sd_mod" ];
     initrd.kernelModules = [ ];
     kernelModules = [ "amdgpu" "nvme" "kvm-amd" "btrfs"];
     extraModulePackages = [  ];
