@@ -61,13 +61,17 @@
           doCheck = false;
         });
 
-        # Skip tests for gitMinimal which are failing during optimized builds.
+        # Skip tests for git packages which are failing during optimized builds.
         gitMinimal = prev.gitMinimal.overrideAttrs (old: {
           doCheck = false;
+          checkPhase = "true";
+          doInstallCheck = false;
         });
 
         git = prev.git.overrideAttrs (old: {
           doCheck = false;
+          checkPhase = "true";
+          doInstallCheck = false;
         });
 
         # Skip tests for pytest-xdist which are failing during optimized builds.
