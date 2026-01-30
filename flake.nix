@@ -108,6 +108,18 @@
 
         gsl = prev.gsl.overrideAttrs (old: safeInjectFlags old genericFlags);
 
+        # Fix ROCm LLVM/Clang build failures by forcing generic flags and skipping tests.
+        rocmPackages = prev.rocmPackages.overrideScope (rfinal: rprev: {
+          llvm = rprev.llvm // {
+            clang-unwrapped = rprev.llvm.clang-unwrapped.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
+              doCheck = false;
+            });
+            llvm = rprev.llvm.llvm.overrideAttrs (old: (safeInjectFlags old genericFlags) // {
+              doCheck = false;
+            });
+          };
+        });
+
         # Skip tests for assimp failing during optimized builds.
         assimp = prev.assimp.overrideAttrs (old: {
           doCheck = false;
