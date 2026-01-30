@@ -53,16 +53,13 @@
   };
 
   # Use a specific kernel version for this host.
-  # Optimized specifically for Zen 5 (Ryzen AI Max+ 395)
+  # Optimized specifically for Zen 5 (Ryzen AI Max+ 395).
   boot.kernelPackages = let
-    zenOptimized = pkgs.linux_zen.override {
-      stdenv = pkgs.stdenv.override (old: {
-        mkDerivationFromStdenv = args: old.mkDerivationFromStdenv (args // {
-          NIX_CFLAGS_COMPILE = (args.NIX_CFLAGS_COMPILE or "") + " -march=znver5 -mtune=znver5";
-        });
-      });
-    };
-  in pkgs.linuxPackagesFor zenOptimized;
+    baseKernel = pkgs.linux_zen;
+    optimizedKernel = baseKernel.overrideAttrs (old: {
+      NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=znver5 -mtune=znver5";
+    });
+  in pkgs.linuxPackagesFor optimizedKernel;
   #boot.kernelPackages = pkgs.linuxPackages_zen;
    # Use the systemd-boot EFI boot loader.
   boot.loader = {

@@ -40,17 +40,15 @@
   # Choose which ZFS you want (stable or bleeding-edge)
   #boot.zfs.package = pkgs.zfsUnstable;   # or: pkgs.zfsUnstable
 
-  # Use the latest kernel that ZFS supports in this stable release.
+  # Use the latest LTS kernel supported by ZFS.
   # Optimized specifically for Zen 2 (Threadripper 3000).
   boot.kernelPackages = let
-    latestZfsCompatible = pkgs.zfs.latestCompatibleLinuxPackages.kernel.override {
-      stdenv = pkgs.stdenv.override (old: {
-        mkDerivationFromStdenv = args: old.mkDerivationFromStdenv (args // {
-          NIX_CFLAGS_COMPILE = (args.NIX_CFLAGS_COMPILE or "") + " -march=znver2 -mtune=znver2";
-        });
-      });
-    };
-  in pkgs.linuxPackagesFor latestZfsCompatible;
+    # Pin to 6.12 which is the current LTS on NixOS 25.11
+    baseKernel = pkgs.linuxPackages_6_12.kernel;
+    optimizedKernel = baseKernel.overrideAttrs (old: {
+      NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=znver2 -mtune=znver2";
+    });
+  in pkgs.linuxPackagesFor optimizedKernel;
    # Use the systemd-boot EFI boot loader.
   boot.loader = {
     systemd-boot.enable = true;

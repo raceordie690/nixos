@@ -11,21 +11,17 @@
 
   outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }:
     let
-      # Define package sets for each system architecture.
-      # This overlay adds packages from nixpkgs-unstable into the stable package set.
-      unstable-overlay = final: prev:
-        let
-          # Import unstable pkgs once to avoid duplication and for clarity.
-          unstablePkgs = import nixpkgs-unstable {
-            system = prev.stdenv.hostPlatform.system;
-            config.allowUnfree = true;
-          };
-        in {
-          # Overlay rocmPackages from unstable.
-          rocmPackages = unstablePkgs.rocmPackages;
+      # Simple overlay to pull specific packages from unstable
+      unstable-overlay = final: prev: {
+        unstablePkgs = import nixpkgs-unstable {
+          system = prev.stdenv.hostPlatform.system;
+          config.allowUnfree = true;
         };
+        # Ensure ROCm is always fresh from unstable
+        rocmPackages = final.unstablePkgs.rocmPackages;
+      };
 
-      # Overlay to fix Strix Halo page faults (MES 0x83 regression)
+      # Hardware-specific firmware overlay
       firmware-overlay = final: prev: {
         linux-firmware = prev.linux-firmware.overrideAttrs (old: {
           preInstall = (old.preInstall or "") + ''
@@ -38,37 +34,27 @@
         });
       };
 
-      # Helper function to build a NixOS host configuration.
-      # Standard mkHost without architecture-specific overrides to ensure binary cache usage.
-      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ], extraOverlays ? [] }:
-        let
-          # Import unstable pkgs once to pass to modules via specialArgs.
-          unstablePkgs = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
-          # Create the final pkgs set with the stable+unstable overlay.
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-            overlays = [ unstable-overlay ] ++ extraOverlays;
-          };
-        in
+      # Standard host builder helper
+      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ], extraOverlays ? [ ] }:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          inherit pkgs;
           specialArgs = {
-            inherit hostname;
-            inherit nixpkgs;
-            inherit unstablePkgs;
+            inherit hostname nixpkgs;
+            unstablePkgs = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
           };
-          modules = modules;
+          modules = [
+            {
+              nixpkgs.overlays = [ unstable-overlay ] ++ extraOverlays;
+              nixpkgs.config.allowUnfree = true;
+            }
+          ] ++ modules;
         };
 
+      # Helper for installer ISOs
       mkInstallerHost = { hostname, system ? "x86_64-linux", modules ? [ ] }:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = {
-            inherit hostname;
-            inherit nixpkgs;
-          };
+          specialArgs = { inherit hostname nixpkgs; };
           modules = modules;
         };
 
@@ -81,7 +67,6 @@
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
             "${nixos-hardware}/common/cpu/amd/raphael/igpu.nix"
-            ./modules/amdgpu.nix
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
@@ -98,7 +83,6 @@
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
-            ./modules/amdgpu.nix
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
