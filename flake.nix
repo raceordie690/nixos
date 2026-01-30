@@ -104,6 +104,10 @@
           };
           doCheck = false;
         });
+        
+        clang = prev.clang.overrideAttrs (old: {
+          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+        });
       };
 
       # Helper function to build a NixOS host configuration.
