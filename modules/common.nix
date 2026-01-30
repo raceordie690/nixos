@@ -18,6 +18,10 @@ in
     # plymouth, showing after LUKS unlock
     plymouth.enable = true;
 
+    # Use tmpfs for /tmp for performance and reduced disk wear
+    tmp.useTmpfs = true;
+    tmp.tmpfsSize = "25%";
+
     kernelModules = [ "crc32c_intel" "crc32_pclmul" ];
   };
 
@@ -32,7 +36,6 @@ in
   hardware.cpu.amd.updateMicrocode = true;
   # Podman is optional unless you’ll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
-  powerManagement.cpuFreqGovernor = "schedutil";
   # Add settings for the Nix daemon here.
   nix.settings = {
     # Ensure flakes are enabled.

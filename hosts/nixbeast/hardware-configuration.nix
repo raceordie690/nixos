@@ -27,7 +27,7 @@
       wait-for-file /dev/disk/by-partuuid/35567007-09f3-492d-860b-dcc61b974bc8
     '';
   };
- 
+
   networking.hostName = "nixbeast";
   fileSystems = {
     "/" = {
@@ -36,39 +36,38 @@
       fsType = "btrfs";
       options = [ "subvol=@" "compress=zstd" "ssd" "space_cache=v2" "noatime" ];
     };
- 
+
     "/home" = {
       device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d";
       fsType = "btrfs";
       options = [ "subvol=@home" "compress=zstd" "ssd" "space_cache=v2" "noatime" ];
     };
- 
+
     "/nix" = {
       device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d";
       fsType = "btrfs";
       options = [ "subvol=@nix" "compress=zstd" "ssd" "space_cache=v2" "noatime" ];
     };
- 
+
     "/var" = { device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d"; fsType = "btrfs"; options = [ "subvol=@var" "compress=zstd" "ssd" "space_cache=v2" "noatime" ]; };
- 
-    # Using tmpfs for /tmp is generally recommended for performance and to avoid unnecessary writes.
-    "/tmp" = { device = "tmpfs"; fsType = "tmpfs"; options = [ "defaults" "mode=1777" "size=32G" ]; };
- 
+
+
+
     "/data" = { device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d"; fsType = "btrfs"; options = [ "subvol=@data" "nodatacow" "ssd" "space_cache=v2" "noatime" ]; };
- 
+
     "/vm" = {
       device = "/dev/disk/by-uuid/f0916b95-2b4c-41d2-90e3-6e4c8d398f9d";
       fsType = "btrfs";
       # 'nodatacow' is critical for VM disk image performance.
       options = [ "subvol=@vm" "nodatacow" "ssd" "space_cache=v2" "noatime" ];
     };
- 
+
     "/efi" = {
       device = "/dev/disk/by-partuuid/96a8b89f-0c2b-4cc5-828d-613d243ee696";
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
- 
+
     "/efi2" = {
       device = "/dev/disk/by-partuuid/afee2a35-efef-4eeb-ba66-eef96ae64912";
       fsType = "vfat";

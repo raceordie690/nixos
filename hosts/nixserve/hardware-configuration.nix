@@ -66,10 +66,7 @@
         fsType = "zfs";
       };
 
-    "/tmp" =
-      { device = "rpool/temp";
-        fsType = "zfs";
-      };
+
 
     "/vm" =
       { device = "rpool/vm";
