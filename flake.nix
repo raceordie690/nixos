@@ -67,6 +67,10 @@
           checkPhase = "true";
           doInstallCheck = false;
         });
+        
+        exempi = prev.exempi.overrideAttrs (old: {
+          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+        });
 
         git = prev.git.overrideAttrs (old: {
           doCheck = false;
