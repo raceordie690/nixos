@@ -67,6 +67,7 @@
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
             "${nixos-hardware}/common/cpu/amd/raphael/igpu.nix"
+            ./modules/amdgpu.nix
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
@@ -83,6 +84,7 @@
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
+            ./modules/amdgpu.nix
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
