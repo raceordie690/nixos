@@ -43,6 +43,15 @@ in
     download-buffer-size = 100663296;
   };
 
+  # Increase file descriptor limits for large builds
+  systemd.extraConfig = ''
+    DefaultLimitNOFILE=1048576
+  '';
+
+  security.pam.loginLimits = [
+    { domain = "*"; type = "-"; item = "nofile"; value = "1048576"; }
+  ];
+
 
   # Locale/time
   time.timeZone = "America/Chicago";
