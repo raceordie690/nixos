@@ -32,7 +32,17 @@
   networking.hostName = "nixboss";
   networking.hostId = "e7a6ede7";
 
-  boot.kernelPackages = pkgs.linuxPackagesFor pkgs.linux_zen;
+  # Use the latest kernel that ZFS supports in this stable release.
+  # Optimized specifically for Zen 4 (Ryzen 7940HS).
+  boot.kernelPackages = let
+    latestZfsCompatible = pkgs.zfs.latestCompatibleLinuxPackages.kernel.override {
+      stdenv = pkgs.stdenv.override (old: {
+        mkDerivationFromStdenv = args: old.mkDerivationFromStdenv (args // {
+          NIX_CFLAGS_COMPILE = (args.NIX_CFLAGS_COMPILE or "") + " -march=znver4 -mtune=znver4";
+        });
+      });
+    };
+  in pkgs.linuxPackagesFor latestZfsCompatible;
 
   boot.loader = {
     systemd-boot.enable = true;
