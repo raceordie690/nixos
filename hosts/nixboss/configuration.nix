@@ -37,10 +37,10 @@
 
 
 
-  # Power management - correct option name
-  services.logind.extraConfig = ''
-    HandlePowerKey=sleep
-  '';
+  # Power management
+  services.logind.settings.Login = {
+    HandlePowerKey = "sleep";
+  };
 
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.

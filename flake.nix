@@ -89,6 +89,16 @@
         coreutils-full = prev.coreutils-full.overrideAttrs (old: {
           doCheck = false;
         });
+
+        # Fix gnupg and systemd Exec format error by forcing generic architecture.
+        gnupg = prev.gnupg.overrideAttrs (old: {
+          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+        });
+
+        systemd = prev.systemd.overrideAttrs (old: {
+          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+          doCheck = false;
+        });
       };
 
       # Helper function to build a NixOS host configuration.
