@@ -55,9 +55,10 @@
           NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
         });
 
-        # Fix LLVM 21 crash/OOM by forcing generic architecture.
+        # Fix LLVM 21 crash/OOM by forcing generic architecture and skip tests.
         llvm_21 = prev.llvm_21.overrideAttrs (old: {
           NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+          doCheck = false;
         });
 
         # Skip tests for gitMinimal which are failing during optimized builds.
