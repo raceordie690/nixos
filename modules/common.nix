@@ -44,6 +44,7 @@ in
     # Increase the download buffer to 64 MiB to handle larger files.
     # The value is in bytes. 96 * 1024 * 1024 = 100,663,296
     download-buffer-size = 100663296;
+    auto-optimise-store = true;
   };
 
   # Increase file descriptor limits for large builds
