@@ -64,6 +64,10 @@
         gitMinimal = prev.gitMinimal.overrideAttrs (old: {
           doCheck = false;
         });
+        
+        git = prev.git.overrideAttrs (old: {
+          doCheck = false;
+        });
       };
 
       # Helper function to build a NixOS host configuration.
