@@ -91,12 +91,17 @@
         });
 
         # Fix gnupg and systemd Exec format error by forcing generic architecture.
+        # We use env.NIX_CFLAGS_COMPILE to avoid collisions with existing env settings in these packages.
         gnupg = prev.gnupg.overrideAttrs (old: {
-          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+          env = (old.env or { }) // {
+            NIX_CFLAGS_COMPILE = (old.env.NIX_CFLAGS_COMPILE or (old.NIX_CFLAGS_COMPILE or "")) + " -march=x86-64 -mtune=generic";
+          };
         });
 
         systemd = prev.systemd.overrideAttrs (old: {
-          NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+          env = (old.env or { }) // {
+            NIX_CFLAGS_COMPILE = (old.env.NIX_CFLAGS_COMPILE or (old.NIX_CFLAGS_COMPILE or "")) + " -march=x86-64 -mtune=generic";
+          };
           doCheck = false;
         });
       };
