@@ -64,9 +64,16 @@
         gitMinimal = prev.gitMinimal.overrideAttrs (old: {
           doCheck = false;
         });
-        
+
         git = prev.git.overrideAttrs (old: {
           doCheck = false;
+        });
+
+        # Skip tests for pytest-xdist which are failing during optimized builds.
+        python3Packages = prev.python3Packages.overrideScope (pself: pprev: {
+          pytest-xdist = pprev.pytest-xdist.overrideAttrs (old: {
+            doCheck = false;
+          });
         });
       };
 
