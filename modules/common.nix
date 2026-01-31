@@ -224,6 +224,19 @@ in
   };
   users.groups.nm-openconnect = {};
   users.groups.netdev = {};
+  security.sudo.extraRules = [{
+    users = [ "robert" ];
+    commands = [
+      {
+        command = "/run/current-system/sw/bin/systemctl suspend";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl hibernate";
+        options = [ "NOPASSWD" ];
+      }
+    ];
+  }];
 
 
 
