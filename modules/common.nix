@@ -65,17 +65,7 @@ in
   services.timesyncd.enable = true;
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # DNS-over-TLS with Cloudflare
-  services.resolved = {
-    enable = true;
-    dnssec = "true";
-    domains = [ "~." ];
-    fallbackDns = [ "1.0.0.1" "2606:4700:4700::1001" ];
-    extraConfig = ''
-      DNS=1.1.1.1#cloudflare-dns.com 2606:4700:4700::1111#cloudflare-dns.com
-      DNSOverTLS=yes
-    '';
-  };
+  services.resolved.enable = true;
 
   # Networking with WiFi support
   networking = {
@@ -93,8 +83,7 @@ in
       plugins = [ ];
     };
 
-    # Cloudflare secure DNS servers
-    nameservers = [ "1.1.1.1" "1.0.0.1" ];
+
     search = [ ];
 
     firewall.enable = false;

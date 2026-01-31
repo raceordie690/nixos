@@ -28,8 +28,9 @@
       wait-for-file /dev/disk/by-partuuid/35567007-09f3-492d-860b-dcc61b974bc8
     '';
   };
-  
+
   networking = {
+    hostName = "nixbeast";
     interfaces.enp191s0.wakeOnLan.enable = true;
   };
 

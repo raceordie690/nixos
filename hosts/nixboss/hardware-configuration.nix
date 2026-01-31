@@ -18,11 +18,12 @@
     #"video=DP-4:3440x1440@60"
     ];
   };
-  
+
   networking = {
+    hostName = "nixboss";
     interfaces.enp2s0.wakeOnLan.enable = true;
   };
-  
+
   fileSystems."/" =
     { device = "rpool/root";
       fsType = "zfs";
@@ -52,5 +53,5 @@
   # (the default) this is the recommended approach. When using systemd-networkd it's
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-  
+
 }

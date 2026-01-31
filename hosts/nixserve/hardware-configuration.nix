@@ -33,8 +33,9 @@
   };
 
   networking = {
+    hostName  = "nixserve";
     interfaces.enp68s0.wakeOnLan.enable = true;
-  }; 
+  };
 
   fileSystems = {
     "/" =
