@@ -8,6 +8,7 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
+
   boot = {
     # Btrfs on LVM or other block devices requires the "btrfs" filesystem
     # to be supported in the initrd.
@@ -27,8 +28,11 @@
       wait-for-file /dev/disk/by-partuuid/35567007-09f3-492d-860b-dcc61b974bc8
     '';
   };
+  
+  networking = {
+    interfaces.enp191s0.wakeOnLan.enable = true;
+  };
 
-  networking.hostName = "nixbeast";
   fileSystems = {
     "/" = {
       # Using the Btrfs filesystem UUID is the most robust method.

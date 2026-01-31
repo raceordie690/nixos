@@ -8,6 +8,7 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
+
   boot = {
     initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "usbhid" "usb_storage" "sd_mod" ];
     #initrd.kernelModules = [ ];
@@ -17,7 +18,11 @@
     #"video=DP-4:3440x1440@60"
     ];
   };
-
+  
+  networking = {
+    interfaces.enp2s0.wakeOnLan.enable = true;
+  };
+  
   fileSystems."/" =
     { device = "rpool/root";
       fsType = "zfs";
