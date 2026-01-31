@@ -8,7 +8,11 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  networking.hostName = "nixserve";
+  networking = {
+    hostName = "nixserve";
+    interfaces.enp2s0.wakeOnLan.enable = true;
+  }; 
+
   boot = {
     loader.efi.efiSysMountPoint = "/efi";
     initrd.availableKernelModules = [ "ahci" "xhci_pci"  "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
