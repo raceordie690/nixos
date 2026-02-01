@@ -22,7 +22,6 @@
     "amd_pstate=active"
     "amd_pstate_prefcore=1"
     "transparent_hugepage=always"
-    "amdgpu.gttsize=131072"
     "ttm.pages_limit=33554432"
   ];
 

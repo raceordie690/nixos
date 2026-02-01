@@ -14,7 +14,6 @@
   # Optimizations for Zen 2 (Threadripper 3000) and AI/LLM usage
   boot.kernelParams = [
     "amd_iommu=off"
-    "amdgpu.gttsize=131072"
     "transparent_hugepage=always"
     "ttm.pages_limit=33554432"
     "amd_pstate=passive"

@@ -14,12 +14,14 @@
   boot.kernelParams = [
     "splash"
     "amd_iommu=off"
-    "amdgpu.gttsize=131072"
     "ttm.pages_limit=33554432"
     "amd_pstate=active"
     "amd_pstate_prefcore=1"
     "transparent_hugepage=always"
   ];
+
+  # Prevent "ucsi_acpi USBC000:00: unknown error 256" log spam
+  boot.blacklistedKernelModules = [ "ucsi_acpi" ];
 
   # Enable the base AMD GPU drivers (from amdgpu.nix).
   drivers.amdgpu.enable = true;

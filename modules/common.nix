@@ -22,7 +22,7 @@ in
     tmp.useTmpfs = true;
     tmp.tmpfsSize = "25%";
 
-    kernelModules = [ "crc32c_intel" "crc32_pclmul" ];
+
   };
 
 
@@ -72,7 +72,6 @@ in
     useDHCP = lib.mkDefault true;
     # Open necessary TCP ports for remote management or services.
     firewall.allowedTCPPorts = [ 8089 8088 8087];
-    interfaces.enp3s0.wakeOnLan.enable = true;
     networkmanager = {
       enable = true;
       dns = "systemd-resolved";
