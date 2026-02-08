@@ -102,6 +102,8 @@
     };
 
     # Windows VM XML configuration
+    # Uses Q35 chipset for proper PCIe support — required for GPU passthrough
+    # because i440fx cannot map the GPU's large 64-bit BARs (16GB+ VRAM)
     environment.etc."libvirt/qemu/windows.xml".text = ''
       <domain type='kvm'>
         <name>windows</name>
@@ -110,15 +112,20 @@
         <memory unit='GiB'>64</memory>
         <currentMemory unit='GiB'>64</currentMemory>
         <vcpu placement='static'>16</vcpu>
-        <os>
-          <type arch='x86_64' machine='pc-i440fx-9.1'>hvm</type>
-          <loader readonly='yes' type='pflash'>/etc/ovmf/edk2-x86_64-secure-code.fd</loader>
+        <os firmware='efi'>
+          <type arch='x86_64' machine='pc-q35-9.1'>hvm</type>
+          <firmware>
+            <feature enabled='yes' name='secure-boot'/>
+          </firmware>
+          <loader readonly='yes' secure='yes' type='pflash'>/etc/ovmf/edk2-x86_64-secure-code.fd</loader>
           <nvram template='/etc/ovmf/edk2-i386-vars.fd'>/var/lib/libvirt/qemu/nvram/windows_VARS.fd</nvram>
           <bootmenu enable='yes' timeout='3000'/>
         </os>
         <features>
           <acpi/>
           <apic/>
+          <smm state='on'/>
+          <ioapic driver='kvm'/>
           <kvm>
             <hidden state='on'/>
           </kvm>
@@ -136,7 +143,6 @@
             <reenlightenment state='on'/>
             <tlbflush state='on'/>
           </hyperv>
-          <viridian/>
           <pmu state='off'/>
         </features>
         <cpu mode='host-passthrough' check='none'>
@@ -158,15 +164,60 @@
         <devices>
           <emulator>/run/libvirt/nix-emulators/qemu-system-x86_64</emulator>
           
-          <!-- Disk -->
+          <!-- ============================================================ -->
+          <!-- PCIe Root Ports — Q35 needs explicit root ports for devices  -->
+          <!-- Each root port creates a new PCIe bus                        -->
+          <!-- ============================================================ -->
+          
+          <!-- Root port 1: GPU (creates bus 0x01) -->
+          <controller type='pci' index='1' model='pcie-root-port'>
+            <model name='pcie-root-port'/>
+            <target chassis='1' port='0x10'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+          </controller>
+          <!-- Root port 2: virtio-blk disk (creates bus 0x02) -->
+          <controller type='pci' index='2' model='pcie-root-port'>
+            <model name='pcie-root-port'/>
+            <target chassis='2' port='0x11'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x1'/>
+          </controller>
+          <!-- Root port 3: virtio-net (creates bus 0x03) -->
+          <controller type='pci' index='3' model='pcie-root-port'>
+            <model name='pcie-root-port'/>
+            <target chassis='3' port='0x12'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x2'/>
+          </controller>
+          <!-- Root port 4: balloon (creates bus 0x04) -->
+          <controller type='pci' index='4' model='pcie-root-port'>
+            <model name='pcie-root-port'/>
+            <target chassis='4' port='0x13'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x3'/>
+          </controller>
+          
+          <!-- USB controller — xHCI for Q35 -->
+          <controller type='usb' index='0' model='qemu-xhci'>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+          </controller>
+          
+          <!-- SATA controller (built into Q35 ICH9) -->
+          <controller type='sata' index='0'>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
+          </controller>
+          
+          <!-- ============================================================ -->
+          <!-- Storage                                                      -->
+          <!-- ============================================================ -->
+          
+          <!-- Main disk on PCIe bus 0x02 -->
           <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
             <target dev='vda' bus='virtio'/>
             <boot order='2'/>
+            <address type='pci' domain='0x0000' bus='0x02' slot='0x00' function='0x0'/>
           </disk>
           
-          <!-- USB boot media for Windows installation -->
+          <!-- Windows ISO via USB for installation -->
           <disk type='file' device='disk'>
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
@@ -175,11 +226,14 @@
             <boot order='1'/>
           </disk>
           
-          <!-- Network: NAT network for VM internet access -->
+          <!-- ============================================================ -->
+          <!-- Network: NAT via libvirt default network                     -->
+          <!-- ============================================================ -->
           <interface type='network'>
             <mac address='52:54:00:12:34:56'/>
             <source network='default'/>
             <model type='virtio'/>
+            <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
           </interface>
           
           <!-- Serial console for debugging -->
@@ -189,7 +243,7 @@
             </target>
           </serial>
           <console type='pty'>
-            <target type='virtio' port='0'/>
+            <target type='serial' port='0'/>
           </console>
           
           <!-- TPM 2.0 for Windows 11 -->
@@ -198,44 +252,45 @@
           </tpm>
           
           <!-- ============================================================ -->
-          <!-- GPU PASSTHROUGH: AMD Radeon Pro 9700R via VFIO               -->
-          <!-- The GPU must be bound to vfio-pci (configured in boot.initrd) -->
+          <!-- GPU PASSTHROUGH: AMD Radeon AI PRO R9700 via VFIO            -->
+          <!-- GPU + Audio on PCIe bus 0x01 (behind root port 1)            -->
+          <!-- PCIe bus gives proper 64-bit MMIO for the GPU's large BARs   -->
           <!-- ============================================================ -->
           <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
               <address domain='0x0000' bus='0x23' slot='0x00' function='0x0'/>
             </source>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0' multifunction='on'/>
+            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0' multifunction='on'/>
             <rom file='/var/lib/libvirt/images/gpu.rom' bar='on'/>
           </hostdev>
           <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
               <address domain='0x0000' bus='0x23' slot='0x00' function='0x1'/>
             </source>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x1'/>
+            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x1'/>
             <rom bar='on'/>
           </hostdev>
           
           <!-- ============================================================ -->
-          <!-- USB PASSTHROUGH: Dedicated keyboard and mouse               -->
-          <!-- Find your USB device IDs with: lsusb -v                     -->
-          <!-- Then add hostdev sections for each USB device               -->
-          <!-- To use, uncomment and update vendor/product IDs              -->
+          <!-- USB PASSTHROUGH: Keyboard and Mouse                          -->
           <!-- ============================================================ -->
-          <!-- Telink Cycle 7 Keyboard -->
           <hostdev mode='subsystem' type='usb' managed='yes'>
             <source>
               <vendor id='0x320f'/>
               <product id='0x5115'/>
             </source>
           </hostdev>
-          <!-- Razer DeathAdder Elite Mouse -->
           <hostdev mode='subsystem' type='usb' managed='yes'>
             <source>
               <vendor id='0x1532'/>
               <product id='0x005c'/>
             </source>
           </hostdev>
+          
+          <!-- Memory balloon on PCIe bus 0x04 -->
+          <memballoon model='virtio'>
+            <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
+          </memballoon>
         </devices>
       </domain>
     '';
