@@ -156,11 +156,17 @@
         <devices>
           <emulator>/run/libvirt/nix-emulators/qemu-system-x86_64</emulator>
           
+          <!-- SATA controller for Q35 -->
+          <controller type='sata' index='0' model='ich9-ahci'>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
+          </controller>
+          
           <!-- Disk -->
           <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
             <target dev='sdb' bus='sata'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='1'/>
             <boot order='2'/>
           </disk>
           
@@ -169,6 +175,7 @@
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
             <target dev='sda' bus='sata'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='0'/>
             <readonly/>
             <boot order='1'/>
           </disk>
