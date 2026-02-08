@@ -206,7 +206,7 @@
               <address domain='0x0000' bus='0x23' slot='0x00' function='0x0'/>
             </source>
             <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0' multifunction='on'/>
-            <rom file='/vm/windows/gpu.rom' bar='on'/>
+            <rom file='/var/lib/libvirt/images/gpu.rom' bar='on'/>
           </hostdev>
           <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
