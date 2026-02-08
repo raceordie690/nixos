@@ -48,7 +48,7 @@
     networking.bridges.br0.interfaces = [ "enp68s0" ];
     networking.interfaces.br0.useDHCP = true;
     networking.interfaces.enp68s0.useDHCP = false;
-    networking.networkmanager.enable = false;
+    networking.networkmanager.enable = lib.mkForce false;
     systemd.network.enable = true;
 
     # ============================================================================
