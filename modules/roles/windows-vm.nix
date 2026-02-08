@@ -45,9 +45,9 @@
     # Creates a bridge so the Windows VM appears as a separate device on your LAN
     # The host (nixserve) will use enp68s0, and VM will be on the same bridge
     
-    networking.bridges.br0.interfaces = [ "enp68s0" ];
+    networking.bridges.br0.interfaces = [ "enp69s0" ];
     networking.interfaces.br0.useDHCP = true;
-    networking.interfaces.enp68s0.useDHCP = false;
+    networking.interfaces.enp69s0.useDHCP = false;
     networking.networkmanager.enable = lib.mkForce false;
     networking.useNetworkd = true;
     networking.useDHCP = false;
