@@ -157,7 +157,7 @@
           <emulator>/run/libvirt/nix-emulators/qemu-system-x86_64</emulator>
           
           <!-- SATA controller for Q35 -->
-          <controller type='sata' index='0' model='ich9-ahci'>
+          <controller type='sata' index='0'>
             <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
           </controller>
           
