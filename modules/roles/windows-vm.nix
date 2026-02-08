@@ -56,6 +56,7 @@
     
     systemd.tmpfiles.rules = [
       "d /var/lib/libvirt/qemu 0751 libvirtd kvm -"
+      "d /var/lib/libvirt/images 0755 libvirtd kvm -"
       "d /vm 0755 root root -"
       "d /vm/windows 0755 libvirtd kvm -"
     ];
@@ -171,6 +172,7 @@
           <!-- CD-ROM drive for Windows installation media -->
           <disk type='file' device='cdrom'>
             <driver name='qemu' type='raw'/>
+            <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
             <target dev='sda' bus='sata'/>
             <readonly/>
             <boot order='2'/>
