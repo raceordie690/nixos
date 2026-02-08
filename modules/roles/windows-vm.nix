@@ -40,66 +40,40 @@
     programs.virt-manager.enable = true;
 
     # ============================================================================
-    # Network Bridge Configuration
-    # ============================================================================
-    # Creates a bridge so the Windows VM appears as a separate device on your LAN
-    # The host (nixserve) will use enp68s0, and VM will be on the same bridge
-    
-    systemd.network.netdevs."br0" = {
-      netdevConfig = {
-        Name = "br0";
-        Kind = "bridge";
-      };
-    };
-    systemd.network.networks."br0" = {
-      matchConfig.Name = "br0";
-      networkConfig = {
-        DHCP = "yes";
-        DNS = [ "1.1.1.1" "8.8.8.8" ];
-      };
-    };
-    systemd.network.networks."enp69s0" = {
-      matchConfig.Name = "enp69s0";
-      networkConfig = {
-        Bridge = "br0";
-      };
-    };
-    networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
-    networking.networkmanager.enable = lib.mkForce false;
-    networking.useNetworkd = true;
-    networking.useDHCP = false;
-    systemd.network.enable = true;
-
-    # ============================================================================
     # libvirtd Network Definition
     # ============================================================================
-    # Creates a libvirt network that uses the bridge
+    # Creates a NAT network for the VM
     
     systemd.tmpfiles.rules = [
       "d /var/lib/libvirt/qemu 0751 libvirtd kvm -"
       "d /var/lib/libvirt/images 0755 libvirtd kvm -"
       "d /vm 0755 root root -"
-      "d /vm/windows 0755 libvirtd kvm -"
+      "d /vm/windows 0755 qemu-libvirtd libvirtd -"
     ];
 
-    # Define the bridge network for libvirt
-    systemd.services.libvirtd-bridge-setup = {
-      description = "Setup libvirt bridge network";
+    # Define the NAT network for libvirt
+    systemd.services.libvirtd-network-setup = {
+      description = "Setup libvirt NAT network";
       after = [ "network.target" "libvirtd.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash -c 'virsh net-define /etc/libvirt/qemu/networks/bridge.xml 2>/dev/null || true; virsh net-start bridge 2>/dev/null || true'";
+        ExecStart = "${pkgs.bash}/bin/bash -c 'virsh net-define /etc/libvirt/qemu/networks/default.xml 2>/dev/null || true; virsh net-start default 2>/dev/null || true; virsh net-autostart default 2>/dev/null || true'";
         RemainAfterExit = true;
       };
     };
 
-    # Write the bridge network XML configuration
-    environment.etc."libvirt/qemu/networks/bridge.xml".text = ''
+    # Write the NAT network XML configuration
+    environment.etc."libvirt/qemu/networks/default.xml".text = ''
       <network>
-        <name>bridge</name>
-        <forward mode="bridge"/>
-        <bridge name="br0"/>
+        <name>default</name>
+        <forward mode='nat'/>
+        <bridge name='virbr0' stp='on' delay='0'/>
+        <ip address='192.168.122.1' netmask='255.255.255.0'>
+          <dhcp>
+            <range start='192.168.122.2' end='192.168.122.254'/>
+          </dhcp>
+        </ip>
       </network>
     '';
 
@@ -199,10 +173,10 @@
             <boot order='2'/>
           </disk>
           
-          <!-- Network: Bridged to br0 for LAN access -->
-          <interface type='bridge'>
+          <!-- Network: NAT network for VM internet access -->
+          <interface type='network'>
             <mac address='52:54:00:12:34:56'/>
-            <source bridge='br0'/>
+            <source network='default'/>
             <model type='virtio'/>
           </interface>
           
