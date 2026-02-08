@@ -190,6 +190,11 @@
             <target type='virtio' port='0'/>
           </console>
           
+          <!-- TPM 2.0 for Windows 11 -->
+          <tpm model='tpm-crb'>
+            <backend type='emulator' version='2.0'/>
+          </tpm>
+          
           <!-- ============================================================ -->
           <!-- GPU PASSTHROUGH: AMD Radeon Pro 9700R via VFIO               -->
           <!-- The GPU must be bound to vfio-pci (configured in boot.initrd) -->
