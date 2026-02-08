@@ -160,15 +160,15 @@
           <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
-            <target dev='hdb' bus='ide'/>
+            <target dev='vda' bus='virtio'/>
             <boot order='2'/>
           </disk>
           
-          <!-- CD-ROM drive for Windows installation media -->
-          <disk type='file' device='cdrom'>
+          <!-- USB boot media for Windows installation -->
+          <disk type='file' device='disk'>
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
-            <target dev='hda' bus='ide'/>
+            <target dev='sda' bus='usb'/>
             <readonly/>
             <boot order='1'/>
           </disk>
