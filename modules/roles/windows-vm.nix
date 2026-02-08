@@ -109,7 +109,7 @@
         <currentMemory unit='GiB'>64</currentMemory>
         <vcpu placement='static'>16</vcpu>
         <os>
-          <type arch='x86_64' machine='pc-q35-9.1'>hvm</type>
+          <type arch='x86_64' machine='pc-i440fx-9.1'>hvm</type>
           <loader readonly='yes' type='pflash'>/etc/ovmf/edk2-x86_64-secure-code.fd</loader>
           <nvram template='/etc/ovmf/edk2-i386-vars.fd'>/var/lib/libvirt/qemu/nvram/windows_VARS.fd</nvram>
           <bootmenu enable='yes' timeout='3000'/>
@@ -156,17 +156,11 @@
         <devices>
           <emulator>/run/libvirt/nix-emulators/qemu-system-x86_64</emulator>
           
-          <!-- SATA controller for Q35 -->
-          <controller type='sata' index='0'>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
-          </controller>
-          
           <!-- Disk -->
           <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
-            <target dev='sdb' bus='sata'/>
-            <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+            <target dev='hdb' bus='ide'/>
             <boot order='2'/>
           </disk>
           
@@ -174,8 +168,7 @@
           <disk type='file' device='cdrom'>
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
-            <target dev='sda' bus='sata'/>
-            <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+            <target dev='hda' bus='ide'/>
             <readonly/>
             <boot order='1'/>
           </disk>
