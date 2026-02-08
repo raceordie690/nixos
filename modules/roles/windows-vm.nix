@@ -11,7 +11,7 @@
     
     boot = {
       # Load VFIO kernel modules early to bind GPU before amdgpu loads
-      initrd.kernelModules = [ "vfio" "vfio_iommu_type1" "vfio_msi" "vfio_pci" ];
+      initrd.kernelModules = [ "vfio" "vfio_iommu_type1" "vfio_pci" ];
       
       # Prevent amdgpu from binding to the GPU we want to pass through
       # The vfio_pci.ids parameter binds the device to VFIO before amdgpu loads
