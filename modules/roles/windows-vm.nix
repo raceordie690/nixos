@@ -109,7 +109,7 @@
         <currentMemory unit='GiB'>64</currentMemory>
         <vcpu placement='static'>16</vcpu>
         <os>
-          <type arch='x86_64' machine='pc-i440fx-9.1'>hvm</type>
+          <type arch='x86_64' machine='pc-q35-9.1'>hvm</type>
           <loader readonly='yes' type='pflash'>/etc/ovmf/edk2-x86_64-secure-code.fd</loader>
           <nvram template='/etc/ovmf/edk2-i386-vars.fd'>/var/lib/libvirt/qemu/nvram/windows_VARS.fd</nvram>
           <bootmenu enable='yes' timeout='3000'/>
@@ -202,12 +202,14 @@
               <address domain='0x0000' bus='0x23' slot='0x00' function='0x0'/>
 
             </source>
+            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0' multifunction='on'/>
             <rom bar='on'/>
           </hostdev>
           <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
               <address domain='0x0000' bus='0x23' slot='0x00' function='0x1'/>
             </source>
+            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x1'/>
             <rom bar='on'/>
           </hostdev>
           
