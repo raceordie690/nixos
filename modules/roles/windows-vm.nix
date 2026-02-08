@@ -137,8 +137,8 @@
           <viridian/>
           <pmu state='off'/>
         </features>
-        <cpu mode='custom' match='exact' check='full'>
-          <model fallback='forbid'>EPYC-v4</model>
+        <cpu mode='host-passthrough' check='none'>
+          <topology sockets='1' dies='1' cores='16' threads='1'/>
         </cpu>
         <clock offset='localtime'>
           <timer name='rtc' tickpolicy='catchup'/>
