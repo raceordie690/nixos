@@ -208,20 +208,30 @@
           <!-- Storage                                                      -->
           <!-- ============================================================ -->
           
-          <!-- Main disk on PCIe bus 0x02 -->
+          <!-- Main disk on SATA (native Windows support for installation) -->
+          <!-- Switch to virtio after installing virtio drivers in Windows -->
           <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
-            <target dev='vda' bus='virtio'/>
+            <target dev='sda' bus='sata'/>
             <boot order='2'/>
-            <address type='pci' domain='0x0000' bus='0x02' slot='0x00' function='0x0'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='0'/>
           </disk>
           
-          <!-- Windows ISO via USB for installation -->
+          <!-- Virtio driver ISO as SATA CD-ROM -->
+          <disk type='file' device='cdrom'>
+            <driver name='qemu' type='raw'/>
+            <source file='/var/lib/libvirt/images/virtio-win.iso'/>
+            <target dev='sdb' bus='sata'/>
+            <readonly/>
+            <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+          </disk>
+
+          <!-- Windows install ISO via USB -->
           <disk type='file' device='disk'>
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
-            <target dev='sda' bus='usb'/>
+            <target dev='sdc' bus='usb'/>
             <readonly/>
             <boot order='1'/>
           </disk>
