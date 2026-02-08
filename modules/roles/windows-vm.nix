@@ -195,11 +195,6 @@
             <backend type='emulator' version='2.0'/>
           </tpm>
           
-          <!-- QXL video for installation (remove after Windows is installed) -->
-          <video>
-            <model type='qxl' ram='65536' vram='65536' vgamem='16384' heads='1'/>
-          </video>
-          
           <!-- ============================================================ -->
           <!-- GPU PASSTHROUGH: AMD Radeon Pro 9700R via VFIO               -->
           <!-- The GPU must be bound to vfio-pci (configured in boot.initrd) -->
