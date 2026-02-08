@@ -7,8 +7,10 @@
 
 
   imports = [
+    ../../modules/common.nix
     (../../modules/amdgpu.nix)
     ../../modules/roles/headless-rocm.nix
+    ../../modules/roles/windows-vm.nix
   ];
 
   # Optimizations for Zen 2 (Threadripper 3000) and AI/LLM usage
