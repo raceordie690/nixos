@@ -206,20 +206,16 @@
           <!-- ============================================================ -->
           <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
-              <!-- UPDATE: Replace with your actual GPU PCI address -->
-              <!-- Find it with: lspci -nn | grep "1002:" -->
-              <!-- Format is: <slot>:00.<function> e.g., 65:00.0           -->
               <address domain='0x0000' bus='0x23' slot='0x00' function='0x0'/>
-
             </source>
-            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0' multifunction='on'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0' multifunction='on'/>
             <rom bar='on'/>
           </hostdev>
           <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
               <address domain='0x0000' bus='0x23' slot='0x00' function='0x1'/>
             </source>
-            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x1'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x1'/>
             <rom bar='on'/>
           </hostdev>
           
