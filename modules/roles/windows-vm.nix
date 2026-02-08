@@ -34,8 +34,6 @@
         package = pkgs.qemu_kvm;
         swtpm.enable = true;
         runAsRoot = false;
-        ovmf.enable = true;  # Enable UEFI firmware for Windows VMs
-        ovmf.packages = [ pkgs.OVMFFull.fd ];  # Firmware packages
       };
     };
 
