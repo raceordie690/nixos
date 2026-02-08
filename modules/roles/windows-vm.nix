@@ -219,14 +219,20 @@
           <!-- Then add hostdev sections for each USB device               -->
           <!-- To use, uncomment and update vendor/product IDs              -->
           <!-- ============================================================ -->
-          <!-- 
+          <!-- Telink Cycle 7 Keyboard -->
           <hostdev mode='subsystem' type='usb' managed='yes'>
             <source>
-              <vendor id='0xVVVV'/>
-              <product id='0xPPPP'/>
+              <vendor id='0x320f'/>
+              <product id='0x5115'/>
             </source>
           </hostdev>
-          -->
+          <!-- Razer DeathAdder Elite Mouse -->
+          <hostdev mode='subsystem' type='usb' managed='yes'>
+            <source>
+              <vendor id='0x1532'/>
+              <product id='0x005c'/>
+            </source>
+          </hostdev>
         </devices>
       </domain>
     '';
