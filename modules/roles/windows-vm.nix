@@ -160,7 +160,7 @@
           <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
-            <target dev='vda' bus='virtio'/>
+            <target dev='sdb' bus='sata'/>
             <boot order='2'/>
           </disk>
           
