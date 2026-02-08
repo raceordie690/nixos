@@ -190,11 +190,6 @@
             <target type='virtio' port='0'/>
           </console>
           
-          <!-- SPICE video device (fallback if GPU fails) -->
-          <video model='qxl'>
-            <acceleration accel3d='yes'/>
-          </video>
-          
           <!-- ============================================================ -->
           <!-- GPU PASSTHROUGH: AMD Radeon Pro 9700R via VFIO               -->
           <!-- The GPU must be bound to vfio-pci (configured in boot.initrd) -->
