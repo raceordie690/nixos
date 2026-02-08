@@ -161,7 +161,7 @@
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
             <target dev='vda' bus='virtio'/>
-            <boot order='1'/>
+            <boot order='2'/>
           </disk>
           
           <!-- CD-ROM drive for Windows installation media -->
@@ -170,7 +170,7 @@
             <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
             <target dev='sda' bus='sata'/>
             <readonly/>
-            <boot order='2'/>
+            <boot order='1'/>
           </disk>
           
           <!-- Network: NAT network for VM internet access -->
