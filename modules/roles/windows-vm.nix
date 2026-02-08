@@ -243,7 +243,7 @@
           <interface type='network'>
             <mac address='52:54:00:12:34:56'/>
             <source network='default'/>
-            <model type='virtio'/>
+            <model type='e1000e'/>
             <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
           </interface>
           
