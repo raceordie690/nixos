@@ -17,9 +17,11 @@
       # The vfio_pci.ids parameter binds the device to VFIO before amdgpu loads
       # REPLACE THE PCI ID: Run 'lspci -nn | grep -i "radeon"' to find your GPU
       # Example for Radeon Pro 9700X: vfio_pci.ids=1002:7431
-      kernelParams = [
-        "vfio_pci.ids=1002:7551,1002:ab40"  # GPU + HDMI/DP audio function
-      ];
+      # NOTE: We intentionally do NOT set vfio_pci.ids here.
+      # Letting amdgpu initialize the GPU on boot makes the ROM available
+      # for OVMF to drive display output during passthrough.
+      # libvirt's managed='yes' handles bind/unbind automatically when the VM starts/stops.
+      kernelParams = [ ];
     };
 
     # ============================================================================
