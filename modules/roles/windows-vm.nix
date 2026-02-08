@@ -218,22 +218,23 @@
             <address type='drive' controller='0' bus='0' target='0' unit='0'/>
           </disk>
           
+          <!-- Windows install ISO as SATA CD-ROM -->
+          <disk type='file' device='cdrom'>
+            <driver name='qemu' type='raw'/>
+            <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
+            <target dev='sdb' bus='sata'/>
+            <readonly/>
+            <boot order='1'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+          </disk>
+
           <!-- Virtio driver ISO as SATA CD-ROM -->
           <disk type='file' device='cdrom'>
             <driver name='qemu' type='raw'/>
             <source file='/var/lib/libvirt/images/virtio-win.iso'/>
-            <target dev='sdb' bus='sata'/>
+            <target dev='sdc' bus='sata'/>
             <readonly/>
-            <address type='drive' controller='0' bus='0' target='0' unit='1'/>
-          </disk>
-
-          <!-- Windows install ISO via USB -->
-          <disk type='file' device='disk'>
-            <driver name='qemu' type='raw'/>
-            <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
-            <target dev='sdc' bus='usb'/>
-            <readonly/>
-            <boot order='1'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='2'/>
           </disk>
           
           <!-- ============================================================ -->
