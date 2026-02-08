@@ -114,8 +114,8 @@
         <vcpu placement='static'>16</vcpu>
         <os>
           <type arch='x86_64' machine='pc-i440fx-9.1'>hvm</type>
-          <firmware>efi</firmware>
-          <nvram template='/usr/share/OVMF/OVMF_VARS.fd'/>
+          <loader readonly='yes' type='pflash'>/etc/ovmf/edk2-x86_64-secure-code.fd</loader>
+          <nvram template='/etc/ovmf/edk2-i386-vars.fd'>/var/lib/libvirt/qemu/nvram/windows_VARS.fd</nvram>
           <bootmenu enable='yes' timeout='3000'/>
         </os>
         <features>
