@@ -208,13 +208,13 @@
           <!-- Storage                                                      -->
           <!-- ============================================================ -->
           
-          <!-- Main disk on virtio (virtio drivers installed in Windows) -->
+          <!-- Main disk on SATA (switch to virtio after enabling viostor boot driver) -->
           <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2' discard='unmap'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
-            <target dev='vda' bus='virtio'/>
+            <target dev='sda' bus='sata'/>
             <boot order='1'/>
-            <address type='pci' domain='0x0000' bus='0x02' slot='0x00' function='0x0'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='0'/>
           </disk>
           
           <!-- ============================================================ -->
