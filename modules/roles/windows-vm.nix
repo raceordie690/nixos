@@ -208,10 +208,10 @@
           <!-- Storage                                                      -->
           <!-- ============================================================ -->
           
-          <!-- Main disk on SATA (switch to virtio after enabling viostor boot driver) -->
+          <!-- Main disk: raw on ZFS for best performance (no double CoW) -->
           <disk type='file' device='disk'>
-            <driver name='qemu' type='qcow2' discard='unmap'/>
-            <source file='/vm/windows/windows-disk.qcow2'/>
+            <driver name='qemu' type='raw' cache='none' io='native' discard='unmap'/>
+            <source file='/vm/windows/windows-disk.raw'/>
             <target dev='sda' bus='sata'/>
             <boot order='1'/>
             <address type='drive' controller='0' bus='0' target='0' unit='0'/>
@@ -223,7 +223,7 @@
           <interface type='network'>
             <mac address='52:54:00:12:34:56'/>
             <source network='default'/>
-            <model type='virtio'/>
+            <model type='e1000e'/>
             <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
           </interface>
           
@@ -278,10 +278,7 @@
             </source>
           </hostdev>
           
-          <!-- Memory balloon on PCIe bus 0x04 -->
-          <memballoon model='virtio'>
-            <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
-          </memballoon>
+          <memballoon model='none'/>
         </devices>
       </domain>
     '';
