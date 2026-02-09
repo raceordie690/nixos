@@ -214,7 +214,7 @@
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
             <target dev='sda' bus='sata'/>
-            <boot order='1>
+            <boot order='1'/>
             <address type='drive' controller='0' bus='0' target='0' unit='0'/>
           </disk>
           
