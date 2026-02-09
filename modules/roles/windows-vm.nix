@@ -187,7 +187,7 @@
             <target chassis='3' port='0x12'/>
             <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x2'/>
           </controller>
-          <!-- Root port 4: balloon (creates bus 0x04) -->
+          <!-- Root port 4: USB controller passthrough (creates bus 0x04) -->
           <controller type='pci' index='4' model='pcie-root-port'>
             <model name='pcie-root-port'/>
             <target chassis='4' port='0x13'/>
@@ -263,19 +263,16 @@
           </hostdev>
           
           <!-- ============================================================ -->
-          <!-- USB PASSTHROUGH: Keyboard and Mouse                          -->
+          <!-- USB CONTROLLER PASSTHROUGH: Native USB for keyboard/mouse   -->
+          <!-- PCI passthrough of entire xHCI controller for zero-latency  -->
+          <!-- Plug keyboard and mouse into this controller's ports        -->
+          <!-- PCI address: 0000:25:00.3 (IOMMU Group 62, isolated)        -->
           <!-- ============================================================ -->
-          <hostdev mode='subsystem' type='usb' managed='yes'>
+          <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
-              <vendor id='0x320f'/>
-              <product id='0x5115'/>
+              <address domain='0x0000' bus='0x25' slot='0x00' function='0x3'/>
             </source>
-          </hostdev>
-          <hostdev mode='subsystem' type='usb' managed='yes'>
-            <source>
-              <vendor id='0x1532'/>
-              <product id='0x005c'/>
-            </source>
+            <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
           </hostdev>
           
           <memballoon model='none'/>
