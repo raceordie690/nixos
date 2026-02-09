@@ -214,7 +214,7 @@
             <driver name='qemu' type='qcow2'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
             <target dev='sda' bus='sata'/>
-            <boot order='2'/>
+            <boot order='1>
             <address type='drive' controller='0' bus='0' target='0' unit='0'/>
           </disk>
           
@@ -224,7 +224,7 @@
             <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
             <target dev='sdb' bus='sata'/>
             <readonly/>
-            <boot order='1'/>
+            <boot order='2'/>
             <address type='drive' controller='0' bus='0' target='0' unit='1'/>
           </disk>
 
