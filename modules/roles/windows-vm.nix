@@ -208,33 +208,13 @@
           <!-- Storage                                                      -->
           <!-- ============================================================ -->
           
-          <!-- Main disk on SATA (native Windows support for installation) -->
-          <!-- Switch to virtio after installing virtio drivers in Windows -->
+          <!-- Main disk on virtio (virtio drivers installed in Windows) -->
           <disk type='file' device='disk'>
-            <driver name='qemu' type='qcow2'/>
+            <driver name='qemu' type='qcow2' discard='unmap'/>
             <source file='/vm/windows/windows-disk.qcow2'/>
-            <target dev='sda' bus='sata'/>
+            <target dev='vda' bus='virtio'/>
             <boot order='1'/>
-            <address type='drive' controller='0' bus='0' target='0' unit='0'/>
-          </disk>
-          
-          <!-- Windows install ISO as SATA CD-ROM -->
-          <disk type='file' device='cdrom'>
-            <driver name='qemu' type='raw'/>
-            <source file='/var/lib/libvirt/images/Win11_25H2_EnglishInternational_x64.iso'/>
-            <target dev='sdb' bus='sata'/>
-            <readonly/>
-            <boot order='2'/>
-            <address type='drive' controller='0' bus='0' target='0' unit='1'/>
-          </disk>
-
-          <!-- Virtio driver ISO as SATA CD-ROM -->
-          <disk type='file' device='cdrom'>
-            <driver name='qemu' type='raw'/>
-            <source file='/var/lib/libvirt/images/virtio-win.iso'/>
-            <target dev='sdc' bus='sata'/>
-            <readonly/>
-            <address type='drive' controller='0' bus='0' target='0' unit='2'/>
+            <address type='pci' domain='0x0000' bus='0x02' slot='0x00' function='0x0'/>
           </disk>
           
           <!-- ============================================================ -->
@@ -243,7 +223,7 @@
           <interface type='network'>
             <mac address='52:54:00:12:34:56'/>
             <source network='default'/>
-            <model type='e1000e'/>
+            <model type='virtio'/>
             <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
           </interface>
           
