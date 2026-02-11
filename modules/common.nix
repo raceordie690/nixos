@@ -55,6 +55,10 @@ in
     DefaultLimitNOFILE = "1048576";
   };
 
+  # Enable ddcutil to control monitor settings
+  hardware.i2c.enable = true;
+  boot.kernelModules = [ "i2c-dev" ];
+
   security.pam.loginLimits = [
     { domain = "*"; type = "-"; item = "nofile"; value = "1048576"; }
   ];
@@ -115,6 +119,7 @@ in
   services.udev.extraRules = ''
     KERNEL=="hidraw*", ATTRS{idVendor}=="fffe", ATTRS{idProduct}=="0009", TAG+="uaccess"
     KERNEL=="uinput", MODE="0660", GROUP="uinput"
+    KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
   '';
 
 
@@ -199,7 +204,7 @@ in
 
 
 
-    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" "input" "uinput" ];
+    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" "input" "uinput" "i2c" ];
     packages = with pkgs; [ ];
     openssh.authorizedKeys.keys = [
       "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGOvoX3deODoSn/brDTWYmLAgLVpCJC5fuKvWXNj+oVFYt3fA9S3B8ZAs8H867tJhAbRz3FunMYJ+vPG1WqcTk0lgBY2whugExPd6WxhrTb3NVVW2Z+t6W3B5pE0nw6BL0zk+9vimIp3y0d8PBADU/5jeYz+7HodzdEol75EnX1btXeGg== robert@nixboss"
@@ -357,7 +362,7 @@ in
     iperf3            # Network performance testing
 
     parallel
-
+    ddcutil
   ];
 
 
