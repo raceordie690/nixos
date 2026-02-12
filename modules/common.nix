@@ -177,8 +177,33 @@ in
     defaultShared = true;
   };
 
+  # Scanner support for Epson devices
+  hardware.sane = {
+    enable = true;
+    extraBackends = [ pkgs.epkowa ];
+  };
+
+  # Enable SANE daemon for network scanning
+  services.saned.enable = true;
+
   services.gvfs.enable = true;
   services.envfs.enable = true;
+
+  # SANE configuration for network scanners
+  environment.etc."sane.d/net.conf".text = ''
+    172.19.168.30
+  '';
+
+  environment.etc."sane.d/epkowa.conf".text = ''
+    # Enable network scanning for Epson scanners
+    net autodiscovery
+    net 172.19.168.30:9100
+  '';
+
+  environment.etc."sane.d/epsonscan.conf".text = ''
+    192.168.1.0/24
+    172.19.168.0/24
+  '';
 
   # SSH and locate
   services.openssh = {
@@ -204,7 +229,7 @@ in
 
 
 
-    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" "input" "uinput" "i2c" ];
+    extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" "input" "uinput" "i2c" "scanner" "lp" ];
     packages = with pkgs; [ ];
     openssh.authorizedKeys.keys = [
       "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGOvoX3deODoSn/brDTWYmLAgLVpCJC5fuKvWXNj+oVFYt3fA9S3B8ZAs8H867tJhAbRz3FunMYJ+vPG1WqcTk0lgBY2whugExPd6WxhrTb3NVVW2Z+t6W3B5pE0nw6BL0zk+9vimIp3y0d8PBADU/5jeYz+7HodzdEol75EnX1btXeGg== robert@nixboss"
@@ -340,6 +365,7 @@ in
     xdg-utils
     mbuffer
     vlc
+    epsonscan2
 
     # Apps
     mpv
@@ -363,6 +389,7 @@ in
 
     parallel
     ddcutil
+    imagemagick
   ];
 
 

@@ -42,42 +42,36 @@
     programs.virt-manager.enable = true;
 
     # ============================================================================
-    # libvirtd Network Definition
+    # Network Bridge for VM (connects to LAN via enp69s0)
     # ============================================================================
-    # Creates a NAT network for the VM
+    networking.bridges.br0.interfaces = [ "enp69s0" ];
     
+    # Configure bridge IP (via DHCP or static)
+    systemd.network.networks."10-br0" = {
+      matchConfig.Name = "br0";
+      DHCP = "yes";
+      linkConfig.RequiredForOnline = "yes";
+    };
+    
+    # Remove IP from physical interface (it moves to the bridge)
+    systemd.network.networks."20-enp69s0" = {
+      matchConfig.Name = "enp69s0";
+      bridge = [ "br0" ];
+      linkConfig.RequiredForOnline = "no";
+    };
+
+    # ============================================================================
+    # libvirtd Network Definition — NOT NEEDED FOR BRIDGED NETWORKING
+    # ============================================================================
+    # Bridged networking connects the VM directly to the physical LAN,
+    # so the libvirt NAT network is not required.
+
     systemd.tmpfiles.rules = [
       "d /var/lib/libvirt/qemu 0751 libvirtd kvm -"
       "d /var/lib/libvirt/images 0755 libvirtd kvm -"
       "d /vm 0755 root root -"
       "d /vm/windows 0755 qemu-libvirtd libvirtd -"
     ];
-
-    # Define the NAT network for libvirt
-    systemd.services.libvirtd-network-setup = {
-      description = "Setup libvirt NAT network";
-      after = [ "network.target" "libvirtd.service" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash -c 'virsh net-define /etc/libvirt/qemu/networks/default.xml 2>/dev/null || true; virsh net-start default 2>/dev/null || true; virsh net-autostart default 2>/dev/null || true'";
-        RemainAfterExit = true;
-      };
-    };
-
-    # Write the NAT network XML configuration
-    environment.etc."libvirt/qemu/networks/default.xml".text = ''
-      <network>
-        <name>default</name>
-        <forward mode='nat'/>
-        <bridge name='virbr0' stp='on' delay='0'/>
-        <ip address='192.168.122.1' netmask='255.255.255.0'>
-          <dhcp>
-            <range start='192.168.122.2' end='192.168.122.254'/>
-          </dhcp>
-        </ip>
-      </network>
-    '';
 
     # ============================================================================
     # Windows VM Definition
@@ -218,11 +212,11 @@
           </disk>
           
           <!-- ============================================================ -->
-          <!-- Network: NAT via libvirt default network                     -->
+          <!-- Network: Bridged to LAN for direct access to printers/scanners -->
           <!-- ============================================================ -->
-          <interface type='network'>
+          <interface type='bridge'>
             <mac address='52:54:00:12:34:56'/>
-            <source network='default'/>
+            <source bridge='br0'/>
             <model type='e1000e'/>
             <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
           </interface>
