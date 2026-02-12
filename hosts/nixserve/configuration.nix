@@ -21,6 +21,13 @@
     "amd_pstate=passive"
   ];
 
+  # ============================================================================
+  # Network Bridge for VM (br0 bridges the LAN interface to the VM)
+  # ============================================================================
+  networking.bridges.br0.interfaces = [ "enp69s0" ];
+  networking.interfaces.br0.useDHCP = true;
+  networking.interfaces.enp69s0.useDHCP = false;
+
   # Enable the base AMD GPU drivers (from amdgpu.nix).
   drivers.amdgpu.enable = true;
 
