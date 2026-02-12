@@ -8,6 +8,7 @@
   imports = [
     (../../modules/amdgpu.nix)
     ../../modules/rocm.nix
+    ../../modules/roles/windows-vm.nix
   ];
 
   # Optimizations for Zen 5 (Ryzen AI Max+ 395) and AI/LLM usage
@@ -19,6 +20,13 @@
     "amd_pstate_prefcore=1"
     "transparent_hugepage=always"
   ];
+
+  # ============================================================================
+  # Network Bridge for VM (br0 bridges enp69s0 to LAN)
+  # ============================================================================
+  networking.bridges.br0.interfaces = [ "enp69s0" ];
+  networking.interfaces.br0.useDHCP = true;
+  networking.interfaces.enp69s0.useDHCP = false;
 
   # Prevent "ucsi_acpi USBC000:00: unknown error 256" log spam
   boot.blacklistedKernelModules = [ "ucsi_acpi" ];

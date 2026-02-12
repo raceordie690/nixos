@@ -42,25 +42,6 @@
     programs.virt-manager.enable = true;
 
     # ============================================================================
-    # Network Bridge for VM (connects to LAN via enp69s0)
-    # ============================================================================
-    networking.bridges.br0.interfaces = [ "enp69s0" ];
-    
-    # Configure bridge IP (via DHCP or static)
-    systemd.network.networks."10-br0" = {
-      matchConfig.Name = "br0";
-      DHCP = "yes";
-      linkConfig.RequiredForOnline = "yes";
-    };
-    
-    # Remove IP from physical interface (it moves to the bridge)
-    systemd.network.networks."20-enp69s0" = {
-      matchConfig.Name = "enp69s0";
-      bridge = [ "br0" ];
-      linkConfig.RequiredForOnline = "no";
-    };
-
-    # ============================================================================
     # libvirtd Network Definition — NOT NEEDED FOR BRIDGED NETWORKING
     # ============================================================================
     # Bridged networking connects the VM directly to the physical LAN,
