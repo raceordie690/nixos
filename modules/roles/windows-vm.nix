@@ -35,6 +35,16 @@
       qemu = {
         swtpm.enable = true;
         runAsRoot = false;
+        verbatimConfig = ''
+          cgroup_device_acl = [
+            "/dev/null", "/dev/full", "/dev/zero",
+            "/dev/random", "/dev/urandom",
+            "/dev/ptmx", "/dev/kvm", "/dev/kqemu",
+            "/dev/rtc", "/dev/hpet", "/dev/vfio/vfio",
+            "/dev/input/by-id/usb-Keychron_Keychron_Q3_48003700045032583331322000000000-event-kbd",
+            "/dev/input/by-id/usb-Razer_Razer_DeathAdder_V2-event-mouse"
+          ]
+        '';
       };
     };
 
@@ -238,18 +248,16 @@
           </hostdev>
           
           <!-- ============================================================ -->
-          <!-- USB CONTROLLER PASSTHROUGH: Native USB for keyboard/mouse   -->
-          <!-- PCI passthrough of entire xHCI controller for zero-latency  -->
-          <!-- Plug keyboard and mouse into this controller's ports        -->
-          <!-- PCI address: 0000:25:00.3 (IOMMU Group 62, isolated)        -->
           <!-- ============================================================ -->
-          <hostdev mode='subsystem' type='pci' managed='yes'>
-            <source>
-              <address domain='0x0000' bus='0x25' slot='0x00' function='0x3'/>
-            </source>
-            <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
-          </hostdev>
-          
+          <!-- INPUT (EVDEV): Host keyboard/mouse passthrough              -->
+          <!-- ============================================================ -->
+          <input type='evdev' model='keyboard'>
+            <source dev='/dev/input/by-id/usb-Keychron_Keychron_Q3_48003700045032583331322000000000-event-kbd' grab='all' repeat='on'/>
+          </input>
+          <input type='evdev' model='mouse'>
+            <source dev='/dev/input/by-id/usb-Razer_Razer_DeathAdder_V2-event-mouse' grab='all'/>
+          </input>
+
           <memballoon model='none'/>
         </devices>
       </domain>
