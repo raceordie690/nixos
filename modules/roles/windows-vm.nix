@@ -122,6 +122,7 @@
         </features>
         <cpu mode='host-passthrough' check='none'>
           <topology sockets='1' dies='1' cores='16' threads='1'/>
+          <feature policy='disable' name='hypervisor'/>
         </cpu>
         <clock offset='localtime'>
           <timer name='rtc' tickpolicy='catchup'/>
