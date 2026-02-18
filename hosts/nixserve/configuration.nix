@@ -24,6 +24,9 @@
   # ============================================================================
   # Network Bridge for VM (br0 bridges the LAN interface to the VM)
   # ============================================================================
+  # Disable NetworkManager - it conflicts with manual bridge configuration
+  networking.networkmanager.enable = lib.mkForce false;
+  
   networking.bridges.br0.interfaces = [ "enp69s0" ];
   networking.interfaces.br0.useDHCP = true;
   networking.interfaces.enp69s0.useDHCP = false;
