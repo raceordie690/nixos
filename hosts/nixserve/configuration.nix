@@ -27,9 +27,16 @@
   # Disable NetworkManager - it conflicts with manual bridge configuration
   networking.networkmanager.enable = lib.mkForce false;
   
+  # Use systemd-networkd to manage the bridge
+  networking.useNetworkd = true;
+  
+  # Configure the bridge and physical interface
   networking.bridges.br0.interfaces = [ "enp69s0" ];
   networking.interfaces.br0.useDHCP = true;
   networking.interfaces.enp69s0.useDHCP = false;
+  
+  # Enable systemd-networkd service
+  systemd.network.enable = true;
 
   # Enable the base AMD GPU drivers (from amdgpu.nix).
   drivers.amdgpu.enable = true;

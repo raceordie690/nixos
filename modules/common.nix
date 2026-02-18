@@ -70,6 +70,7 @@ in
   i18n.defaultLocale = "en_US.UTF-8";
 
   services.resolved.enable = true;
+  services.resolved.fallbackDns = [ "8.8.8.8" "8.8.4.4" ];
 
   # Networking with WiFi support
   networking = {
