@@ -391,6 +391,8 @@ in
     parallel
     ddcutil
     imagemagick
+
+    python312
   ];
 
 
