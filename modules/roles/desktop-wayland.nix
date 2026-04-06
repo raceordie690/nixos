@@ -24,25 +24,20 @@ in
     })
   ];
 
-  # Login/display: SDDM with Wayland support and custom theme
-  services.displayManager.sddm = {
+  # Login/display: greetd with tuigreet for Wayland support (text-based, no display issues)
+  services.greetd = {
     enable = true;
-    wayland.enable = true;
     settings = {
-      General = {
-        DisplayServer = "wayland";
-        GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=1.3333,QT_AUTO_SCREEN_SCALE_FACTOR=1.3333";
-      };
-      Users = {
-        DefaultSession = "hyprland";
-        MinimumUid = 1000;
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd hyprland";
+        user = "greeter";
+        vt = 1;
       };
     };
   };
 
-  systemd.services.sddm.serviceConfig = {
-    Environment = "DRI_PRIME=1";
-  };
+  # PAM session support for Wayland sessions
+  security.pam.services.greetd.enableGnomeKeyring = true;
 
   # Use the dedicated module for xsettingsd for better integration.
   # This replaces the manual systemd service and environment.etc file.
@@ -67,8 +62,7 @@ in
   #  };
   #};
 
-  # Make sure SDDM/X11 isn't also enabled in this role
-  # services.displayManager.sddm.enable = lib.mkForce false;
+  # Make sure X11 isn't also enabled in this role
   services.xserver.enable = lib.mkForce false;
 
   services.tumbler.enable = true;
@@ -160,8 +154,9 @@ xdg.portal = {
     # for Wayland in your user configuration.
     mako
     
-    # SDDM theming
-    kdePackages.breeze # Provides the Breeze theme for Qt5/Qt6 apps
+    # Greetd + tuigreet for display manager (text-based greeter)
+    greetd.tuigreet
+    adwaita-icon-theme
 
     # Deploy custom assets to the system profile
     custom-assets

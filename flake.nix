@@ -35,7 +35,7 @@
       };
 
       # Standard host builder helper
-      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ], extraOverlays ? [ ] }:
+      mkHost = { hostname, system ? "x86_64-linux", modules ? [ ], extraOverlays ? [ ], withHomeManager ? false }:
         nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = {
@@ -47,7 +47,15 @@
               nixpkgs.overlays = [ unstable-overlay ] ++ extraOverlays;
               nixpkgs.config.allowUnfree = true;
             }
-          ] ++ modules;
+          ] ++ modules ++ (if withHomeManager then [
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup_hm";
+              home-manager.users.robert = import ./home.nix;
+            }
+          ] else []);
         };
 
       # Helper for installer ISOs
@@ -62,6 +70,7 @@
       nixosConfigurations = {
         nixboss = mkHost {
           hostname = "nixboss";
+          withHomeManager = false;
           modules = [
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
@@ -71,7 +80,6 @@
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
-            ./modules/sddm-theme.nix
             ./hosts/nixboss/hardware-configuration.nix
             ./hosts/nixboss/configuration.nix
           ];
@@ -79,6 +87,7 @@
 
         nixbeast = mkHost {
           hostname = "nixbeast";
+          withHomeManager = true;
           extraOverlays = [ firmware-overlay ];
           modules = [
             nixos-hardware.nixosModules.common-cpu-amd
@@ -88,7 +97,6 @@
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
-            ./modules/sddm-theme.nix
             ./hosts/nixbeast/hardware-configuration.nix
             ./hosts/nixbeast/configuration.nix
           ];
