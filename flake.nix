@@ -110,6 +110,7 @@
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/headless-rocm.nix
+            ./modules/roles/rstudio-server.nix # Add the new RStudio system service
             ./hosts/nixserve/hardware-configuration.nix
             ./hosts/nixserve/configuration.nix
           ];
