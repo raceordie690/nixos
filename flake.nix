@@ -87,7 +87,7 @@
 
         nixbeast = mkHost {
           hostname = "nixbeast";
-          withHomeManager = true;
+          withHomeManager = false;
           extraOverlays = [ firmware-overlay ];
           modules = [
             nixos-hardware.nixosModules.common-cpu-amd

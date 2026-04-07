@@ -29,7 +29,7 @@ in
     enable = true;
     settings = {
       default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd hyprland";
+        command = "${pkgs.tuigreet}/bin/tuigreet --cmd hyprland";
         user = "greeter";
         vt = 1;
       };
@@ -155,7 +155,7 @@ xdg.portal = {
     mako
     
     # Greetd + tuigreet for display manager (text-based greeter)
-    greetd.tuigreet
+    tuigreet
     adwaita-icon-theme
 
     # Deploy custom assets to the system profile

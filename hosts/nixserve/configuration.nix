@@ -54,6 +54,26 @@
     };
   };
 
+  # Enable Docker daemon
+  virtualisation.docker.enable = true;
+
+  # Ensure the 'docker' group exists (usually created automatically by the module,
+  # but this is explicit and works even if you don't rely on the module)
+  users.groups.docker = { };
+
+  # Your user must be in the 'docker' group
+  users.users.robert = {
+    extraGroups = [ "docker" ];
+  };
+
+  users.users.craig = {
+    isNormalUser = true;
+    home = "/home/craig";
+    createHome = true;
+    shell = pkgs.bash;
+    extraGroups = [ "docker" ];
+  };
+  
   # Use a specific kernel version for this host.
   # Use the latest kernel from unstable for maximum hardware support.
   # Choose which ZFS you want (stable or bleeding-edge)

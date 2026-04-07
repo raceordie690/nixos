@@ -62,6 +62,14 @@
     extraGroups = [ "docker" ];
   };
 
+  users.users.craig = {
+    isNormalUser = true;
+    home = "/home/craig";
+    createHome = true;
+    shell = pkgs.bash;
+    extraGroups = [ "docker" ];
+  };
+
   # Use the standard Zen kernel for this host.
   boot.kernelPackages = pkgs.linuxPackagesFor pkgs.linux_zen;
   #boot.kernelPackages = pkgs.linuxPackages_zen;
