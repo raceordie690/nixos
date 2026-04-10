@@ -24,7 +24,132 @@ in
     })
   ];
 
-  # Login/display: greetd with tuigreet for Wayland support (text-based, no display issues)
+  # ============================================================================
+  # Boot
+  # ============================================================================
+  boot.plymouth.enable = true;
+
+  # ============================================================================
+  # Input
+  # ============================================================================
+  services.libinput = {
+    enable = true;
+    mouse.accelProfile = "adaptive";
+    mouse.accelSpeed = "-0.425";
+  };
+
+  # ============================================================================
+  # Sound / PipeWire
+  # ============================================================================
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    jack.enable = true;
+  };
+
+  # WirePlumber tuning
+  services.pipewire.wireplumber.extraConfig.bluetoothEnhancements = {
+    "monitor.bluez.properties" = {
+      "bluez5.enable-sbc-xq" = true;
+      "bluez5.enable-msbc" = true;
+      "bluez5.enable-hw-volume" = true;
+      "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
+    };
+  };
+  services.pipewire.extraConfig.pipewire-pulse."92-low-latency" = {
+    context.modules = [
+      {
+        name = "libpipewire-module-protocol-pulse";
+        args = {
+          pulse.min.req = "32/48000";
+          pulse.default.req = "32/48000";
+          pulse.max.req = "32/48000";
+          pulse.min.quantum = "32/48000";
+          pulse.max.quantum = "32/48000";
+        };
+      }
+    ];
+    stream.properties = {
+      node.latency = "32/48000";
+      resample.quality = 1;
+    };
+  };
+
+  # ============================================================================
+  # Bluetooth
+  # ============================================================================
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+  services.blueman.enable = true;
+
+  environment.etc."wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+    bluez_monitor.properties = {
+      ["bluez5.enable-sbc-xq"] = true,
+      ["bluez5.enable-msbc"] = true,
+      ["bluez5.enable-hw-volume"] = true,
+      ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+    }
+  '';
+
+  environment.etc."wireplumber/main.lua.d/99-alsa-lowlatency.lua".text = ''
+    alsa_monitor.rules = {
+      {
+        matches = {{{ "node.name", "matches", "alsa_output.*" }}};
+        apply_properties = {
+          ["audio.format"] = "S32LE",
+          ["audio.rate"] = "96000",
+          ["api.alsa.period-size"] = 2,
+        },
+      },
+    }
+  '';
+
+  # ============================================================================
+  # Printing & Scanning (Epson)
+  # ============================================================================
+  services.printing = {
+    enable = true;
+    drivers = [ pkgs.epson-escpr ];
+    browsing = true;
+    defaultShared = true;
+  };
+
+  hardware.sane = {
+    enable = true;
+    extraBackends = [ pkgs.epkowa ];
+  };
+
+  services.saned.enable = true;
+
+  environment.etc."sane.d/net.conf".text = ''
+    172.19.168.30
+  '';
+
+  environment.etc."sane.d/epkowa.conf".text = ''
+    # Enable network scanning for Epson scanners
+    net autodiscovery
+    net 172.19.168.30:9100
+  '';
+
+  environment.etc."sane.d/epsonscan.conf".text = ''
+    192.168.1.0/24
+    172.19.168.0/24
+  '';
+
+  # ============================================================================
+  # Keyring (GNOME keyring unlocked at login for desktop sessions)
+  # ============================================================================
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.login.enableGnomeKeyring = true;
+
+  # ============================================================================
+  # Login / Display manager
+  # ============================================================================
   services.greetd = {
     enable = true;
     settings = {
@@ -36,129 +161,109 @@ in
     };
   };
 
-  # PAM session support for Wayland sessions
   security.pam.services.greetd.enableGnomeKeyring = true;
-
-  # Use the dedicated module for xsettingsd for better integration.
-  # This replaces the manual systemd service and environment.etc file.
-  #programs.xsettingsd = {
-  #  enable = true;
-  #  settings = {
-  #    # Centralized theme settings, formerly in common.nix
-  #    "Net/ThemeName" = "Cloudy-Dark-Grey";
-  #    "Net/IconThemeName" = "Windows-10-1.0";
-  #    "Gtk/CursorThemeName" = "breeze_cursors";
-  #    "Gtk/CursorThemeSize" = 24; # Using 24 from previous xsettingsd config, 0 from settings.ini is often too small.
-  #    "Gtk/FontName" = "Sans 10";
-  #    "Xft/DPI" = 147456; # 96 * 1.5 = 144 DPI. 147456 is 96 * 1024 * 1.5
-
-  #    # Other GTK settings from the old settings.ini
-  #    "Gtk/ToolbarStyle" = "GTK_TOOLBAR_BOTH_HORIZ";
-  #    "Gtk/ToolbarIconSize" = "GTK_ICON_SIZE_LARGE_TOOLBAR";
-  #    "Gtk/ButtonImages" = 0;
-  #    "Gtk/MenuImages" = 0;
-  #    "Gtk/EnableEventSounds" = 1;
-  #    "Gtk/EnableInputFeedbackSounds" = 1;
-  #  };
-  #};
 
   # Make sure X11 isn't also enabled in this role
   services.xserver.enable = lib.mkForce false;
 
   services.tumbler.enable = true;
   services.gvfs.enable = true;
-  # Enable power management service
   services.upower.enable = true;
 
-  # Wayland plumbing
-  programs.xwayland.enable = true;    # XWayland for X11-only apps
+  # ============================================================================
+  # Hyprland / Wayland
+  # ============================================================================
+  programs.xwayland.enable = true;
 
-  # Hyprland system-level enablement (configuration managed by home-manager)
   programs.hyprland = {
     enable = true;
-    # Use the package from nixpkgs-unstable for the latest features and fixes
     package = unstablePkgs.hyprland;
-    xwayland.enable = true; # Also enabled globally, but good to be explicit for the module.
-    # Note: Hyprland configuration is managed by home-manager
-    # System-level configuration only enables the program and sets up portals
+    xwayland.enable = true;
   };
 
+  xdg.portal = {
+    enable = true;
+    extraPortals = [
+      unstablePkgs.xdg-desktop-portal-hyprland
+      pkgs.xdg-desktop-portal-gtk
+    ];
+  };
 
-xdg.portal = {
-  enable = true;
-  extraPortals = [
-    unstablePkgs.xdg-desktop-portal-hyprland
-    pkgs.xdg-desktop-portal-gtk
-  ];
-  # no `config = { ... };` for now
-};
-
-  # Portals: hyprland backend for Hyprland
-#  xdg.portal = {
-#    enable = true;
-    # xdg-desktop-portal will automatically choose the correct backend (hyprland)
-    # based on the running session.
-#    extraPortals = [
-#      unstablePkgs.xdg-desktop-portal-hyprland
-#      pkgs.xdg-desktop-portal-gtk
-#    ];
-    # Explicitly configure which portal handles which interface
- #   config = {
- #     common = {
- #       default = [
- #         "gtk"
- #       ];
- #     };
- #     hyprland = {
- #       default = [
- #         "hyprland"
- #         "gtk"
- #       ];
-        # Ensure settings interface is handled by GTK portal
- #       "org.freedesktop.impl.portal.Settings" = [
-  #        "gtk"
-  #      ];
-  #    };
-  #  };
-  #};
-
-  # Wayland-friendly environment. Avoid forcing X11 platforms.
+  # Wayland-friendly environment variables
   environment.variables = {
     QT_AUTO_SCREEN_SCALE_FACTOR = "1.3333";
     QT_SCREEN_SCALE_FACTORS = "1.3333";
-    #QT_QPA_PLATFORM = "wayland";
     QT_QPA_PLATFORM = "wayland;xcb";
-    # This is likely a typo for WLR_DRM_DEVICES, used by wlroots-based compositors.
-    #WLR_DRM_DEVICES = "/dev/dri/card1:/dev/dri/card0";
     GDK_SCALE = "1.3333";
-
     XDG_SESSION_TYPE = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
     NIXOS_OZONE_WL = "1";
   };
 
-  # System-level Wayland tools and desktop support
+  # GTK file chooser defaults
+  environment.etc."xdg/gtk-2.0/gtkfilechooser.ini".text = ''
+    [Filechooser Settings]
+    LocationMode=path-bar
+    ShowHidden=false
+    ShowSizeColumn=true
+    GeometryX=0
+    GeometryY=79
+    GeometryWidth=948
+    GeometryHeight=643
+    SortColumn=name
+    SortOrder=ascending
+    StartupMode=recent
+  '';
+
+  # ============================================================================
+  # Desktop packages
+  # ============================================================================
   environment.systemPackages = with pkgs; [
-    # Core WiFi and networking GUI tools (system-level)
-    networkmanagerapplet
-    
-    # System utilities for Wayland
-    unstablePkgs.wlr-randr
+    # Theming / GTK
+    gnome-keyring
+    gtk3
+    gtk4
     adwaita-icon-theme
     qt6Packages.qt6ct
+    gtklock
+    xsettingsd
 
-    # A lightweight Wayland notification daemon.
-    # This is added to provide a working notification service, as the logs
-    # indicate that `dunst` is failing to start, which can cause the
-    # entire login session to fail. `dunst` appears to be misconfigured
-    # for Wayland in your user configuration.
-    mako
-    
-    # Greetd + tuigreet for display manager (text-based greeter)
+    # Media
+    vlc
+    mpv
+
+    # Terminal / shell extras
+    kitty
+    figlet
+    ranger
+
+    # GUI utilities
+    networkmanagerapplet
+    pavucontrol
+    gparted
+    fontpreview
+    gcolor3
+    wl-color-picker
+    scrot
+    ddcutil
+    via           # QMK keyboard config
+
+    # WiFi GUI tools
+    iwgtk
+    wpa_supplicant_gui
+
+    # Wayland utilities
+    unstablePkgs.wlr-randr
+    wireplumber   # CLI tool (service is managed by pipewire module)
+    blueman
+
+    # Scanner
+    epsonscan2
+
+    # Greeter
     tuigreet
-    adwaita-icon-theme
 
-    # Deploy custom assets to the system profile
+    # Custom assets (wallpapers, etc.)
     custom-assets
   ];
 }

@@ -1,2 +1,6 @@
 # Nix build results
 result*
+
+# Age private keys — never commit these
+secrets/age/key.txt
+secrets/age/*.txt

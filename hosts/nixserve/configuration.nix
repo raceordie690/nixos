@@ -7,9 +7,8 @@
 
 
   imports = [
-    ../../modules/common.nix
+    # common.nix and headless-rocm.nix are already included via flake.nix
     (../../modules/amdgpu.nix)
-    ../../modules/roles/headless-rocm.nix
     ../../modules/roles/windows-vm.nix
   ];
 

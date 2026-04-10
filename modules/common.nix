@@ -15,14 +15,9 @@ in
         "rd.systemd.show_status=auto"
     ];
 
-    # plymouth, showing after LUKS unlock
-    plymouth.enable = true;
-
     # Use tmpfs for /tmp for performance and reduced disk wear
     tmp.useTmpfs = true;
     tmp.tmpfsSize = "25%";
-
-
   };
 
 
@@ -34,7 +29,7 @@ in
 
   hardware.enableRedistributableFirmware = true;
   hardware.cpu.amd.updateMicrocode = true;
-  # Podman is optional unless you’ll run containers, but many AI UIs assume it.
+  # Podman is optional unless you'll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
   # Add settings for the Nix daemon here.
   nix.settings = {
@@ -123,89 +118,6 @@ in
     KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
   '';
 
-
-  # Input
-  services.libinput = {
-    enable = true;
-    mouse.accelProfile = "adaptive";
-    mouse.accelSpeed = "-0.425";
-  };
-
-  # Sound/media
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
-  };
-
-  # WirePlumber tuning (shared)
-  services.pipewire.wireplumber.extraConfig.bluetoothEnhancements = {
-    "monitor.bluez.properties" = {
-      "bluez5.enable-sbc-xq" = true;
-      "bluez5.enable-msbc" = true;
-      "bluez5.enable-hw-volume" = true;
-      "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
-    };
-  };
-  services.pipewire.extraConfig.pipewire-pulse."92-low-latency" = {
-    context.modules = [
-      {
-        name = "libpipewire-module-protocol-pulse";
-        args = {
-          pulse.min.req = "32/48000";
-          pulse.default.req = "32/48000";
-          pulse.max.req = "32/48000";
-          pulse.min.quantum = "32/48000";
-          pulse.max.quantum = "32/48000";
-        };
-      }
-    ];
-    stream.properties = {
-      node.latency = "32/48000";
-      resample.quality = 1;
-    };
-  };
-
-  # Services/utilities
-  services.blueman.enable = true;
-  services.printing = {
-    enable = true;
-    drivers = [ pkgs.epson-escpr ];
-    browsing = true;
-    defaultShared = true;
-  };
-
-  # Scanner support for Epson devices
-  hardware.sane = {
-    enable = true;
-    extraBackends = [ pkgs.epkowa ];
-  };
-
-  # Enable SANE daemon for network scanning
-  services.saned.enable = true;
-
-  services.gvfs.enable = true;
-  services.envfs.enable = true;
-
-  # SANE configuration for network scanners
-  environment.etc."sane.d/net.conf".text = ''
-    172.19.168.30
-  '';
-
-  environment.etc."sane.d/epkowa.conf".text = ''
-    # Enable network scanning for Epson scanners
-    net autodiscovery
-    net 172.19.168.30:9100
-  '';
-
-  environment.etc."sane.d/epsonscan.conf".text = ''
-    192.168.1.0/24
-    172.19.168.0/24
-  '';
-
   # SSH and locate
   services.openssh = {
     enable = true;
@@ -222,13 +134,6 @@ in
   users.users.${user} = {
     isNormalUser = true;
     initialPassword = "pwd";
-
-    # Enable the user-level ssh-agent service. This ensures that an SSH agent
-    # is running for the 'robert' user, which is required for the Nix daemon
-    # to use their SSH keys for fetching private sources.
-    #useDefaultShell = true;
-
-
 
     extraGroups = [ "wheel" "kvm" "libvirtd" "networkmanager" "audio" "video" "render" "netdev" "input" "uinput" "i2c" "scanner" "lp" ];
     packages = with pkgs; [ ];
@@ -257,80 +162,14 @@ in
     ];
   }];
 
-
-
-  # The GPG agent with SSH support should be managed by home-manager for the user,
-  # not at the system level. This prevents sudo/root from trying to access the
-  # user's agent socket during builds.
-  # programs.ssh.startAgent should also be managed by home-manager.
-
   # OVMF files for libvirt
   environment.etc."ovmf/edk2-x86_64-secure-code.fd".source =
     config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-x86_64-secure-code.fd";
   environment.etc."ovmf/edk2-i386-vars.fd".source =
     config.virtualisation.libvirtd.qemu.package + "/share/qemu/edk2-i386-vars.fd";
 
-  hardware.bluetooth =  {
-    enable = true;
-    powerOnBoot = true;
-  };
-
-
-  # Common etc files
-  environment.etc = {
-    "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
-      bluez_monitor.properties = {
-        ["bluez5.enable-sbc-xq"] = true,
-        ["bluez5.enable-msbc"] = true,
-        ["bluez5.enable-hw-volume"] = true,
-        ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
-      }
-    '';
-    # Fixed the path here: xdg/gtk-2.0 (slash, not dot)
-    "xdg/gtk-2.0/gtkfilechooser.ini".text = ''
-      [Filechooser Settings]
-      LocationMode=path-bar
-      ShowHidden=false
-      ShowSizeColumn=true
-      GeometryX=0
-      GeometryY=79
-      GeometryWidth=948
-      GeometryHeight=643
-      SortColumn=name
-      SortOrder=ascending
-      StartupMode=recent
-    '';
-    "wireplumber/main.lua.d/99-alsa-lowlatency.lua".text = ''
-      alsa_monitor.rules = {
-        {
-          matches = {{{ "node.name", "matches", "alsa_output.*" }}};
-          apply_properties = {
-            ["audio.format"] = "S32LE",
-            ["audio.rate"] = "96000",
-            ["api.alsa.period-size"] = 2,
-          },
-        },
-      }
-    '';
-    # NOTE: The GTK3 settings.ini has been removed from here.
-    # Theming is now managed centrally by `programs.xsettingsd` in the
-    # `desktop-wayland.nix` role to avoid conflicts and provide a
-    # single source of truth for the graphical session.
-    #
-    # If you need to set themes, please modify the `programs.xsettingsd.settings`
-    # attribute set in `/home/robert/nixos/modules/roles/desktop-wayland.nix`.
-
-  };
-
-  # 1. Enable the daemon system-wide (This replaces the Home Manager service)
-  services.gnome.gnome-keyring.enable = true;
-
-  # 2. UNLOCK the keyring on login (The critical missing piece)
-  security.pam.services.login.enableGnomeKeyring = true;
-
   # Core packages shared by all hosts
   environment.systemPackages = with pkgs; [
-    gnome-keyring
     home-manager
     toolbox # Tool for containerized command line environments on Linux
     neovim
@@ -338,9 +177,7 @@ in
     btop
     stow
     libva-utils  # For checking hardware acceleration status with `vainfo`
-    via
     swtpm
-    xsettingsd
     htop
     git
     wget
@@ -352,51 +189,22 @@ in
     glibc
     gnumake
     pkg-config
-    blueman
-    fontpreview
-    gcolor3
-    gparted # Note: requires a graphical session to run
-    pavucontrol
-    qt6.qtbase # Provides qmake
-    ranger
-    scrot
-    vim-full
-    wireplumber # This is already enabled as a service via pipewire
-    wl-color-picker
-    xdg-utils
     mbuffer
-    vlc
-    epsonscan2
-
-    # Apps
-    mpv
     curl
+    parallel
+    imagemagick
+    python312
 
-    kitty
-    gtk3
-    gtk4
-    figlet
-    networkmanagerapplet
-    gtklock
-
-    # Additional WiFi and networking tools
-    iwgtk              # Lightweight WiFi GUI
-    wpa_supplicant_gui # WPA Supplicant GUI
+    # Networking diagnostics (useful on all hosts including servers)
     iw                # Modern wireless configuration tool
     wirelesstools     # iwconfig, iwlist, etc.
     ethtool           # Ethernet configuration
     speedtest-cli     # Network speed testing
     iperf3            # Network performance testing
-
-    parallel
-    ddcutil
-    imagemagick
-
-    python312
   ];
 
 
-  # 25.05 (or later) Fonts
+  # Fonts
   fonts = {
     fontconfig.enable = true;
     fontDir.enable = true;
@@ -416,7 +224,7 @@ in
   };
 
 
-  # Virtualization stack unique to this host
+  # Virtualization stack (all hosts may run VMs)
   programs.virt-manager.enable = true;
   virtualisation.libvirtd = {
     enable = true;

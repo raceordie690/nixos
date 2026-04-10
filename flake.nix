@@ -7,9 +7,10 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    sops-nix.url = "github:Mic92/sops-nix";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, home-manager, sops-nix, ... }:
     let
       # Simple overlay to pull specific packages from unstable
       unstable-overlay = final: prev: {
@@ -39,7 +40,7 @@
         nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = {
-            inherit hostname nixpkgs;
+            inherit hostname nixpkgs sops-nix;
             unstablePkgs = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
           };
           modules = [
@@ -72,6 +73,8 @@
           hostname = "nixboss";
           withHomeManager = false;
           modules = [
+            sops-nix.nixosModules.sops
+            ./modules/sops-config.nix
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
@@ -90,6 +93,8 @@
           withHomeManager = false;
           extraOverlays = [ firmware-overlay ];
           modules = [
+            sops-nix.nixosModules.sops
+            ./modules/sops-config.nix
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             nixos-hardware.nixosModules.common-gpu-amd
@@ -97,6 +102,7 @@
             ./modules/common.nix
             ./modules/zfs-common.nix
             ./modules/roles/desktop-wayland.nix
+            ./modules/roles/rstudio-server.nix # Also enable RStudio on nixbeast
             ./hosts/nixbeast/hardware-configuration.nix
             ./hosts/nixbeast/configuration.nix
           ];
@@ -105,6 +111,8 @@
         nixserve = mkHost {
           hostname = "nixserve";
           modules = [
+            sops-nix.nixosModules.sops
+            ./modules/sops-config.nix
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-cpu-amd-pstate
             ./modules/common.nix
@@ -128,7 +136,7 @@
         in
         pkgs.mkShell {
           name = "nixos-config-shell";
-          nativeBuildInputs = [ pkgs.nixos-rebuild ];
+          nativeBuildInputs = [ pkgs.nixos-rebuild pkgs.sops ];
           shellHook = ''
             echo "Welcome to the NixOS configuration shell."
             rebuild() {

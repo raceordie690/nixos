@@ -1,60 +1,84 @@
 { config, pkgs, lib, ... }:
 
-{
-  # This module defines a system-level service for RStudio Server,
-  # ensuring it runs on boot, independent of any user session.
+let
+  # Define each user's RStudio instance here.
+  # Each entry gets its own container, systemd service, home directory, and port.
+  rstudioUsers = [
+    { username = "robert"; port = 8788; passwordSecret = "rstudio_password"; }
+    { username = "craig";  port = 8787; passwordSecret = "craig_rstudio_password"; }
+  ];
 
-  # Ensure the Docker daemon is running before this service starts.
+  # Generate a systemd service definition for a single user.
+  mkRstudioService = { username, port, passwordSecret, ... }: {
+    name = "rstudio-server-${username}";
+    value = {
+      description = "RStudio Server for ${username} in Docker";
+      after = [ "network.target" "docker.service" ];
+      requires = [ "docker.service" ];
+
+      serviceConfig = {
+        User = "rstudio-server";
+        Group = "rstudio-server";
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStop = "${pkgs.docker}/bin/docker stop rstudio-server-${username}";
+      };
+
+      script = ''
+        DOCKER_CMD="${pkgs.docker}/bin/docker"
+        CONTAINER="rstudio-server-${username}"
+
+        # Resolve the host user's UID/GID so the container user matches exactly.
+        # This ensures files created in RStudio are owned correctly on the host.
+        USER_UID=$(id -u ${username})
+        USER_GID=$(id -g ${username})
+
+        $DOCKER_CMD stop "$CONTAINER" 2>/dev/null || true
+        $DOCKER_CMD rm   "$CONTAINER" 2>/dev/null || true
+
+        $DOCKER_CMD pull rocker/rstudio:latest || true
+
+        ENV_FILE=$(mktemp)
+        printf 'PASSWORD=%s\n' "$(cat ${config.sops.secrets.${passwordSecret}.path})" > "$ENV_FILE"
+        trap "rm -f $ENV_FILE" EXIT
+
+        $DOCKER_CMD run -d \
+          --name "$CONTAINER" \
+          -p ${toString port}:8787 \
+          -v /home/${username}:/home/rstudio \
+          -e USERID="$USER_UID" \
+          -e GROUPID="$USER_GID" \
+          --env-file "$ENV_FILE" \
+          rocker/rstudio:latest
+      '';
+
+      wantedBy = [ "multi-user.target" ];
+    };
+  };
+
+in
+{
   virtualisation.docker.enable = true;
 
-  # Use sops-nix to securely manage the RStudio password at the system level.
-  sops.secrets.rstudio_password = {
-    # The service will run as the 'craig' user, so the secret needs to be accessible by it.
-    owner = "craig";
-    group = "users";
+  # Shared system user that runs all RStudio containers.
+  users.users."rstudio-server" = {
+    isSystemUser = true;
+    group = "rstudio-server";
+    home = "/var/lib/rstudio-server";
+    createHome = true;
+    extraGroups = [ "docker" ];
   };
+  users.groups."rstudio-server" = {};
 
-  systemd.services.rstudio-server = {
-    description = "RStudio Server in Docker";
-    # Start after the Docker daemon and network are ready.
-    after = [ "network.target" "docker.service" ];
-    requires = [ "docker.service" ];
-
-    # The service configuration.
-    serviceConfig = {
-      # The service will run as the 'craig' user.
-      User = "craig";
-      Group = "users";
-      Restart = "on-failure";
-      RestartSec = "10s";
+  # Declare each user's password secret.
+  sops.secrets = lib.listToAttrs (map ({ passwordSecret, ... }: {
+    name = passwordSecret;
+    value = {
+      owner = "rstudio-server";
+      group = "rstudio-server";
     };
+  }) rstudioUsers);
 
-    # A script to manage the container lifecycle.
-    script = ''
-      # Ensure we use the docker from nix store for consistency
-      DOCKER_CMD="${pkgs.docker}/bin/docker"
-
-      # Stop and remove any existing container to ensure a clean start.
-      $DOCKER_CMD stop rstudio-server || true
-      $DOCKER_CMD rm rstudio-server || true
-
-      # Pull the latest image to keep RStudio up-to-date.
-      $DOCKER_CMD pull rocker/rstudio:latest
-
-      # Start the new container.
-      # The password is read from the sops-managed file.
-      # The home directory is mounted from the 'craig' user's home.
-      $DOCKER_CMD run -d \
-        --name rstudio-server \
-        -p 8787:8787 \
-        -v /home/craig/rstudio:/home/rstudio \
-        -e PASSWORD=$(cat ${config.sops.secrets.rstudio_password.path}) \
-        rocker/rstudio:latest
-    '';
-    # Define how to gracefully stop the container.
-    stop = "${pkgs.docker}/bin/docker stop rstudio-server";
-
-    # Enable the service to start on boot.
-    wantedBy = [ "multi-user.target" ];
-  };
+  # Generate one systemd service per user.
+  systemd.services = lib.listToAttrs (map mkRstudioService rstudioUsers);
 }

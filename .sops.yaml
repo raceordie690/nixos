@@ -1,0 +1,4 @@
+# .sops.yaml
+# This file tells sops which key to use to encrypt your secrets.
+creation_rules:
+  - age: "age1n998yglznvku3830zvrkmpmjek2ms8gpxt7kk3xmyanj357v0yfsxkrcfx"

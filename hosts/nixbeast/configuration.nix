@@ -6,7 +6,7 @@
 {
 
   imports = [
-    (../../modules/amdgpu.nix)
+    # amdgpu.nix is already included via flake.nix
     ../../modules/rocm.nix
     ../../modules/roles/windows-vm.nix
   ];
