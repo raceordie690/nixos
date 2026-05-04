@@ -31,6 +31,14 @@ in
   hardware.cpu.amd.updateMicrocode = true;
   # Podman is optional unless you'll run containers, but many AI UIs assume it.
   virtualisation.podman.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+
   # Add settings for the Nix daemon here.
   nix.settings = {
     # Ensure flakes are enabled.
@@ -93,8 +101,7 @@ in
 
   services.avahi = {
     enable = true;
-    nssmdns4 = true;  # Enable IPv4 mDNS in NSS
-    nssmdns6 = true;  # Enable IPv6 mDNS in NSS (optional)
+    nssmdns4 = true;
     ipv4 = true;
     ipv6 = true;
     publish = {
@@ -102,12 +109,6 @@ in
       addresses = true;
       workstation = true;
     };
-    # This is the key to resolving single-label hostnames (e.g., "nixserve")
-    # without needing to append ".local". It configures nss-mdns to handle them.
-    extraConfig = ''
-      [server]
-      domain-name=.local
-    '';
   };
 
   # Firmware/udev
@@ -173,6 +174,7 @@ in
     home-manager
     toolbox # Tool for containerized command line environments on Linux
     neovim
+    vim
     neofetch
     btop
     stow

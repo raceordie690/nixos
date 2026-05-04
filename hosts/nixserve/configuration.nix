@@ -47,10 +47,6 @@
       system-features = [ "gccarch-znver2" "benchmark" "big-parallel" "kvm" "nixos-test" ];
     };
 
-    gc = {
-      automatic = true;
-      dates = [ "weekly" ];
-    };
   };
 
   # Enable Docker daemon

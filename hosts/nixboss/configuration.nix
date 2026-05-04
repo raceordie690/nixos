@@ -9,10 +9,6 @@
       system-features = [ "gccarch-znver4" "benchmark" "big-parallel" "kvm" "nixos-test" ];
     };
 
-    gc = {
-      automatic = true;
-      dates = [ "weekly" ];
-    };
   };
 
 

@@ -24,9 +24,9 @@
   # ============================================================================
   # Network Bridge for VM (br0 bridges enp69s0 to LAN)
   # ============================================================================
-  networking.bridges.br0.interfaces = [ "enp69s0" ];
+  networking.bridges.br0.interfaces = [ "enp191s0" ];
   networking.interfaces.br0.useDHCP = true;
-  networking.interfaces.enp69s0.useDHCP = false;
+  networking.interfaces.enp191s0.useDHCP = false;
 
   # Prevent "ucsi_acpi USBC000:00: unknown error 256" log spam
   boot.blacklistedKernelModules = [ "ucsi_acpi" ];
@@ -44,10 +44,6 @@
       system-features = [ "gccarch-znver5" "benchmark" "big-parallel" "kvm" "nixos-test" ];
     };
 
-    gc = {
-      dates = [ "weekly" ];
-      automatic = true;
-    };
   };
 
   # Enable Docker daemon
