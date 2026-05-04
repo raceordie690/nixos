@@ -20,6 +20,10 @@
     "amd_pstate=passive"
   ];
 
+  # Restrict Avahi to the real network interface only — Docker (docker0/veth*)
+  # and the VM bridge cause hostname conflict probes that rename the host to nixserve-4.local.
+  services.avahi.allowInterfaces = [ "br0" ];
+
   # ============================================================================
   # Network Bridge for VM (br0 bridges the LAN interface to the VM)
   # ============================================================================
