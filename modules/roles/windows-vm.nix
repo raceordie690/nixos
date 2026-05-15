@@ -73,7 +73,7 @@
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash -c 'virsh -c qemu:///system define /etc/libvirt/qemu/windows.xml'";
+        ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.libvirt}/bin/virsh -c qemu:///system define /etc/libvirt/qemu/windows.xml'";
         RemainAfterExit = true;
       };
     };
