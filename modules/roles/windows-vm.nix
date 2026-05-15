@@ -88,13 +88,11 @@
         <title>Windows 11 Pro Workstation</title>
         <memory unit='GiB'>64</memory>
         <currentMemory unit='GiB'>64</currentMemory>
-        <memtune>
-          <hard_limit unit='KiB'>unlimited</hard_limit>
-        </memtune>
         <memoryBacking>
-          <source type='memfd'/>
+          <hugepages>
+            <page size='1' unit='GiB'/>
+          </hugepages>
           <access mode='shared'/>
-          <locked/>
         </memoryBacking>
         <vcpu placement='static'>16</vcpu>
         <os firmware='efi'>
@@ -268,11 +266,7 @@
             <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
           </hostdev>
           
-          <!-- ============================================================ -->
-          <!-- virtiofs: host /flash (fpool/flash/manjaro) → Windows tag  -->
-          <!-- In Windows: install WinFSP + VirtIO-FS driver, then mount  -->
-          <!-- with: \\.\virtio-fs\flash  or map via WinFSP Net Drive      -->
-          <!-- ============================================================ -->
+          <!-- virtiofs: /flash → Windows tag 'flash' via hugepage shared memory -->
           <filesystem type='mount' accessmode='passthrough'>
             <driver type='virtiofs'/>
             <source dir='/flash'/>

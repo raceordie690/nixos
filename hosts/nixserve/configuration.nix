@@ -18,6 +18,11 @@
     "transparent_hugepage=always"
     "ttm.pages_limit=33554432"
     "amd_pstate=passive"
+    # 1GB hugepages for virtiofs + VFIO GPU passthrough
+    # 64 pages = 64GB (matches Windows VM RAM allocation)
+    "default_hugepagesz=1G"
+    "hugepagesz=1G"
+    "hugepages=64"
   ];
 
   # Restrict Avahi to the real network interface only — Docker (docker0/veth*)
@@ -101,6 +106,13 @@
 
 #      umount /mnt/efibackup
 #    '';
+  };
+
+  # Mount hugetlbfs for 1GB pages so libvirt can use hugepages for the Windows VM
+  fileSystems."/dev/hugepages1G" = {
+    device = "hugetlbfs";
+    fsType = "hugetlbfs";
+    options = [ "pagesize=1G" ];
   };
 
   # List packages installed in system profile.
