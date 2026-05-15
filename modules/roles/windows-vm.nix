@@ -88,9 +88,13 @@
         <title>Windows 11 Pro Workstation</title>
         <memory unit='GiB'>64</memory>
         <currentMemory unit='GiB'>64</currentMemory>
+        <memtune>
+          <hard_limit unit='KiB'>unlimited</hard_limit>
+        </memtune>
         <memoryBacking>
           <source type='memfd'/>
           <access mode='shared'/>
+          <locked/>
         </memoryBacking>
         <vcpu placement='static'>16</vcpu>
         <os firmware='efi'>
