@@ -35,6 +35,7 @@
       qemu = {
         swtpm.enable = true;
         runAsRoot = false;
+        vhostUserPackages = [ pkgs.virtiofsd ];
       };
     };
 
@@ -67,11 +68,12 @@
     
     systemd.services.libvirtd-define-windows-vm = {
       description = "Define Windows VM for GPU workstation";
-      after = [ "libvirtd.service" ];
+      after = [ "libvirtd.service" "libvirtd.socket" ];
+      requires = [ "libvirtd.socket" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash -c 'virsh define /etc/libvirt/qemu/windows.xml 2>/dev/null || true'";
+        ExecStart = "${pkgs.bash}/bin/bash -c 'virsh -c qemu:///system define /etc/libvirt/qemu/windows.xml'";
         RemainAfterExit = true;
       };
     };

@@ -77,11 +77,6 @@
         fsType = "zfs";
       };
 
-    "/flash" =
-      { device = "fpool/flash/manjaro";
-        fsType = "zfs";
-        options = [ "zfsutil" "X-mount.mkdir" ];
-      };
   };
 
   swapDevices = [
