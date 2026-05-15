@@ -274,6 +274,14 @@
             <address type='pci' domain='0x0000' bus='0x05' slot='0x00' function='0x0'/>
           </filesystem>
 
+          <!-- Temporary SPICE display for diagnostics / driver reinstall -->
+          <graphics type='spice' port='5910' listen='0.0.0.0'>
+            <listen type='address' address='0.0.0.0'/>
+          </graphics>
+          <video>
+            <model type='qxl' ram='65536' vram='65536' vgamem='16384' heads='1'/>
+          </video>
+
           <memballoon model='none'/>
         </devices>
       </domain>
