@@ -16,7 +16,6 @@
     extraModulePackages = [  ];
     supportedFilesystems = [ "zfs" ];
     zfs.forceImportRoot = true;
-    zfs.extraPools = [ "fpool" ];
     # Tell initrd how to mount the root dataset
     #loader.systemd-boot.extraInstallCommands = ''
     #  set -euxo pipefail
