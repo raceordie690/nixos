@@ -16,6 +16,7 @@
     extraModulePackages = [  ];
     supportedFilesystems = [ "zfs" ];
     zfs.forceImportRoot = true;
+    zfs.extraPools = [ "fpool" ];
     # Tell initrd how to mount the root dataset
     #loader.systemd-boot.extraInstallCommands = ''
     #  set -euxo pipefail
@@ -74,6 +75,12 @@
     "/vm" =
       { device = "rpool/vm";
         fsType = "zfs";
+      };
+
+    "/flash" =
+      { device = "fpool/flash/manjaro";
+        fsType = "zfs";
+        options = [ "zfsutil" "X-mount.mkdir" ];
       };
   };
 

@@ -86,6 +86,10 @@
         <title>Windows 11 Pro Workstation</title>
         <memory unit='GiB'>64</memory>
         <currentMemory unit='GiB'>64</currentMemory>
+        <memoryBacking>
+          <source type='memfd'/>
+          <access mode='shared'/>
+        </memoryBacking>
         <vcpu placement='static'>16</vcpu>
         <os firmware='efi'>
           <type arch='x86_64' machine='pc-q35-9.1'>hvm</type>
@@ -168,6 +172,12 @@
             <model name='pcie-root-port'/>
             <target chassis='4' port='0x13'/>
             <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x3'/>
+          </controller>
+          <!-- Root port 5: virtiofs (creates bus 0x05) -->
+          <controller type='pci' index='5' model='pcie-root-port'>
+            <model name='pcie-root-port'/>
+            <target chassis='5' port='0x14'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x4'/>
           </controller>
           
           <!-- USB controller — xHCI for Q35 -->
@@ -252,6 +262,18 @@
             <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
           </hostdev>
           
+          <!-- ============================================================ -->
+          <!-- virtiofs: host /flash (fpool/flash/manjaro) → Windows tag  -->
+          <!-- In Windows: install WinFSP + VirtIO-FS driver, then mount  -->
+          <!-- with: \\.\virtio-fs\flash  or map via WinFSP Net Drive      -->
+          <!-- ============================================================ -->
+          <filesystem type='mount' accessmode='passthrough'>
+            <driver type='virtiofs'/>
+            <source dir='/flash'/>
+            <target dir='flash'/>
+            <address type='pci' domain='0x0000' bus='0x05' slot='0x00' function='0x0'/>
+          </filesystem>
+
           <memballoon model='none'/>
         </devices>
       </domain>
