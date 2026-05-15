@@ -16,6 +16,7 @@
     extraModulePackages = [  ];
     supportedFilesystems = [ "zfs" ];
     zfs.forceImportRoot = true;
+    zfs.extraPools = [ "fpool" ];  # Manjaro-origin pool; hostid updated via zpool import -f
     # Tell initrd how to mount the root dataset
     #loader.systemd-boot.extraInstallCommands = ''
     #  set -euxo pipefail
