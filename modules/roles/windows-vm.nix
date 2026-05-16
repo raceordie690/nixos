@@ -201,13 +201,6 @@
             <target chassis='4' port='0x13'/>
             <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x3'/>
           </controller>
-          <!-- Root port 5: virtiofs (creates bus 0x05) -->
-          <controller type='pci' index='5' model='pcie-root-port'>
-            <model name='pcie-root-port'/>
-            <target chassis='5' port='0x14'/>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x4'/>
-          </controller>
-          
           <!-- USB controller — xHCI for Q35 -->
           <controller type='usb' index='0' model='qemu-xhci'>
             <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
@@ -256,36 +249,30 @@
             <backend type='emulator' version='2.0'/>
           </tpm>
           
-          <!-- GPU PASSTHROUGH DISABLED for diagnostics -->
-          <!-- Re-enable by restoring the two hostdev blocks for 0000:23:00.0 and 0000:23:00.1 -->
-          <video>
-            <model type='vga' vram='16384' heads='1'/>
-          </video>
-          <graphics type='spice' port='5910' listen='127.0.0.1' autoport='no'>
-            <listen type='address' address='127.0.0.1'/>
-          </graphics>
-          
-          <!-- ============================================================ -->
-          <!-- ============================================================ -->
+          <!-- GPU PASSTHROUGH: AMD Radeon AI PRO R9700 via VFIO -->
+          <hostdev mode='subsystem' type='pci' managed='yes'>
+            <source>
+              <address domain='0x0000' bus='0x23' slot='0x00' function='0x0'/>
+            </source>
+            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0' multifunction='on'/>
+            <rom bar='on'/>
+          </hostdev>
+          <hostdev mode='subsystem' type='pci' managed='yes'>
+            <source>
+              <address domain='0x0000' bus='0x23' slot='0x00' function='0x1'/>
+            </source>
+            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x1'/>
+            <rom bar='on'/>
+          </hostdev>
+
           <!-- USB CONTROLLER PASSTHROUGH: Native USB for keyboard/mouse   -->
-          <!-- PCI passthrough of entire xHCI controller for zero-latency  -->
-          <!-- Plug keyboard and mouse into this controller's ports        -->
           <!-- PCI address: 0000:25:00.3 (IOMMU Group 62, isolated)        -->
-          <!-- ============================================================ -->
           <hostdev mode='subsystem' type='pci' managed='yes'>
             <source>
               <address domain='0x0000' bus='0x25' slot='0x00' function='0x3'/>
             </source>
             <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
           </hostdev>
-          
-          <!-- virtiofs: /flash → Windows tag 'flash' via hugepage shared memory -->
-          <filesystem type='mount' accessmode='passthrough'>
-            <driver type='virtiofs'/>
-            <source dir='/flash'/>
-            <target dir='flash'/>
-            <address type='pci' domain='0x0000' bus='0x05' slot='0x00' function='0x0'/>
-          </filesystem>
 
           <memballoon model='none'/>
         </devices>
