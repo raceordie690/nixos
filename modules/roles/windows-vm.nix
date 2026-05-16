@@ -37,6 +37,30 @@
         runAsRoot = false;
         vhostUserPackages = [ pkgs.virtiofsd ];
       };
+      # This hook script runs before any QEMU VM starts.
+      # It checks if the VM is our "windows" guest and if the operation is "prepare"
+      # (which runs before the guest is started). If so, it deletes the stale
+      # NVRAM file, preventing the boot-hang issue.
+      hooks.qemu = pkgs.writeShellScriptBin "qemu-hook" ''
+        #!/usr/bin/env bash
+        VM_NAME="$1"
+        OPERATION="$2"
+        NVRAM_FILE="/var/lib/libvirt/qemu/nvram/windows_VARS.fd"
+
+        # Log to systemd journal for debugging
+        echo "Libvirt QEMU hook: VM=$VM_NAME, Operation=$OPERATION"
+
+        if [[ "$VM_NAME" == "windows" ]] && [[ "$OPERATION" == "prepare" ]]; then
+            if [[ -f "$NVRAM_FILE" ]]; then
+                echo "Windows VM is preparing to start, deleting stale NVRAM file: $NVRAM_FILE"
+                rm -f "$NVRAM_FILE"
+            else
+                echo "Windows VM is preparing to start, no stale NVRAM file found."
+            fi
+        fi
+
+        exit 0
+      '';
     };
 
     # Enable virt-manager for VM management
