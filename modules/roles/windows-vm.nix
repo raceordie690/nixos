@@ -41,7 +41,7 @@
       # It checks if the VM is our "windows" guest and if the operation is "prepare"
       # (which runs before the guest is started). If so, it deletes the stale
       # NVRAM file, preventing the boot-hang issue.
-      hooks.qemu = pkgs.writeShellScriptBin "qemu-hook" ''
+      hooks.qemu = pkgs.writeShellScript "qemu-hook" ''
         #!/usr/bin/env bash
         VM_NAME="$1"
         OPERATION="$2"
