@@ -256,25 +256,14 @@
             <backend type='emulator' version='2.0'/>
           </tpm>
           
-          <!-- ============================================================ -->
-          <!-- GPU PASSTHROUGH: AMD Radeon AI PRO R9700 via VFIO            -->
-          <!-- GPU + Audio on PCIe bus 0x01 (behind root port 1)            -->
-          <!-- PCIe bus gives proper 64-bit MMIO for the GPU's large BARs   -->
-          <!-- ============================================================ -->
-          <hostdev mode='subsystem' type='pci' managed='yes'>
-            <source>
-              <address domain='0x0000' bus='0x23' slot='0x00' function='0x0'/>
-            </source>
-            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0' multifunction='on'/>
-            <rom bar='on'/>
-          </hostdev>
-          <hostdev mode='subsystem' type='pci' managed='yes'>
-            <source>
-              <address domain='0x0000' bus='0x23' slot='0x00' function='0x1'/>
-            </source>
-            <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x1'/>
-            <rom bar='on'/>
-          </hostdev>
+          <!-- GPU PASSTHROUGH DISABLED for diagnostics -->
+          <!-- Re-enable by restoring the two hostdev blocks for 0000:23:00.0 and 0000:23:00.1 -->
+          <video>
+            <model type='vga' vram='16384' heads='1'/>
+          </video>
+          <graphics type='spice' port='5910' listen='127.0.0.1' autoport='no'>
+            <listen type='address' address='127.0.0.1'/>
+          </graphics>
           
           <!-- ============================================================ -->
           <!-- ============================================================ -->
